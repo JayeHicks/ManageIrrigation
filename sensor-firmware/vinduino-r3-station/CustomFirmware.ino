@@ -69,7 +69,7 @@
  ********************************************************************************/
 
 //#define  USING_DHT              // uncomment for DHT config, comment for DS18B20 config
-#define  BATTERY_POWER            // comment when USB programming cable is powering Vinduino
+#define  BATTERY_POWER            // uncomment for battery, comment for programming cable
 
 #include <Wire.h>                 // I2C comms between ATMega and PCF RealTimeClock
 #include <math.h>                 // conversion equation from resistance to %
@@ -102,27 +102,38 @@ char VINEYARD_SENSOR_STATION_LOCATION[] = "d2n";
  * For a single read event, of a single sensor, multiple measurments of resistance are 
  * calcuated, stored in an array, and ultimately averaged.
  ******************************************************************************************/
-const int  SELECT_SM_SENS_1  = 1;	       // used in a switch/case statement
-const int  SELECT_SM_SENS_2  = 2;          // used in a switch/case statement
-const int  SELECT_SM_SENS_3  = 3;          // used in a switch/case statement
-const int  NUM_READS         = 3;          // # of readings per sensor per single read event
-long       soilSensorReadings[NUM_READS];  // readings from single read event for 1 sensor
-int        indexToAddReading = 0;          // index through soilSensorReadings[]
+const int  SELECT_SM_SENS_1  = 1;	           // used in a switch/case statement
+const int  SELECT_SM_SENS_2  = 2;              // used in a switch/case statement
+const int  SELECT_SM_SENS_3  = 3;              // used in a switch/case statement
+const int  SMS_NUM_READS     = 3;              // # of readings per sensor per single read event
+long       soilSensorReadings[SMS_NUM_READS];  // readings from single read event for 1 sensor
+int        indexToAddReading = 0;              // index through soilSensorReadings[]
+
+/******************************************************************************************
+ * Accumulate summation of 6 readings over 24 hours to enable the average temp to be sent
+ ******************************************************************************************/
+float sumOfTempReadings = 0;
+int   numOfTempReadings = 0;
+
+/******************************************************************************************
+ * Humidity from single reading.  Will be set to 0 if using DS18B20 instead of DHT22
+ ******************************************************************************************/
+float humidity = 0;
 
 /******************************************************************************************
  * Comms: WiFi / Internet Communication
  ******************************************************************************************/
-char     SSID[]           = "your-wifi-name";
-char     PASS[]           = "your-wifi-pw";
+char     SSID[]           = "name-of-your-wifi-here";
+char     PASS[]           = "your-wifi-password-here";
 char     THING_SPEAK_IP[] = "184.106.153.149";             // www.thingspeak.com
 char     GET_COMMAND[]    = "GET /update";
-char     TS_API_KEY[]     = "?api_key=JSLMW9C6S7EPMLQJ";   // unique to a channel in an TS acct
+char     TS_API_KEY[]     = "?api_key=1234567890123456";   // unique to a channel in an TS acct
 
 /*******************************************************************************************
  * ditial pin assignments
  *******************************************************************************************/
 const int  WAKE_UP_PIN                = 2;     // pin used by Sleep/Wake functionality
-const int  WIFI_PIN                   = 13;    // pin used by WiFi
+const int  WIFI_PIN                   = 13;    // pin used by WiFi and Aux Power
 const int  SM_SENS_DRIVER_A           = 5;	   // pin used by soil moisture sensor
 const int  SM_SENS_DRIVER_B           = 6;     // pin used by soil moisture sensor
 const int  MUX_ENABLE                 = 7;     // pin used by soil moisture sensor
@@ -137,6 +148,7 @@ const int  PCF_8563_REG2_ADDR         = 0x01;
 const int  PCF_8563_REG2_ALARM_BIT    = 0x01;
 const int  PCF_8563_TIMER_CNTL_ADDR   = 0x0E;
 const int  PCF_8563_TIMER_VAL_ADDR    = 0x0F;
+int        fourHourBlockCounter       = 0;
 
 // to use timer in seconds, config for seconds then set number of seconds desired
 const int  PCF_8563_ENABLE_TIMER_SECS = 0x82;   // config clock to 1 Hz to get timer
@@ -159,6 +171,11 @@ const int  PCF_8563_SET_TIMER_4_HR    = 0xF0;
  **************************************************************************/
 void setup() 
 {
+  fourHourBlockCounter = 0;
+  sumOfTempReadings = 0;
+  numOfTempReadings = 0;
+  humidity = 0;
+	
   // Serial monitor used to issue AT commands to WiFi chip
   Serial.begin(115200); 
 
@@ -189,14 +206,11 @@ void setup()
     
   // set up a timer for regular, ongoing wake ups from sleep mode
   setTimerPCF8563();
-  
-  // join the wireless network once; logon session data will cache in WiFi chip
-  joinWirelessNetwork();
 }
 
 /*************************************************************************
  * Per Arduino IDE, at micro controller boot time this funciton will
- * receives execution control after the function setup() has finished 
+ * receive execution control after the function setup() has finished 
  * processing.  This function will execute indefinitley (i.e., when execution
  * reaches the bottom of the function the function is called again and this
  * repeats indefinitely.
@@ -209,27 +223,49 @@ void setup()
  *   Got back to step 1 (i.e., attach an interrupt) 
  *************************************************************************/
 void loop() 
-{
-  //turn off WiFi chip
-  digitalWrite(WIFI_PIN, LOW);
-  delay(1000);
-  
+{  
   attachInterrupt(0, wakeUp, LOW);
     
   // enter sleep mode (ADC and BOD modules disabled)
   LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF); 
 
-  // after waking up execute wakeUp() then resume execution flow here
+  //******************************************************************
+  // After the PCF timer goes off and wakes up the ATMega controller, 
+  // the function wakeUp() is executed and then execution flow resumes
+  // here (i.e., call to detachInterrupt() immediately below)
+  //******************************************************************
   
-  // disable any further "wake ups" while collecting and sending data
+  // disable any further "wake ups" while collecting and possibly sending data
   detachInterrupt(0); 
    
-  // if alarm set, reset alarm and power up WiFi chip
+  // if alarm set, reset
   checkPCF8563Alarm();
   delay(1000); 
  
-  // read sensor data, send sensor data
-  readSensorsAndSendData();  
+  // Wake up every four hours and meausre temp.  On 6th wake up collect temp,
+  // average all 6 temp readings, collect all other sensor readings, send
+  // sensor all data, and then reset 24 hour variables.
+  if(fourHourBlockCounter == 5)
+  {
+	joinWirelessNetwork();
+	
+    readSensorsAndSendData(); 
+    
+	//reset counters for new 24 hour period
+	fourHourBlockCounter = 0;	
+	sumOfTempReadings = 0;
+	numOfTempReadings = 0;
+	humidity = 0;
+	
+	//turn off WiFi chip
+    digitalWrite(WIFI_PIN, LOW);
+    delay(1000);
+  }
+  else
+  {
+    ++fourHourBlockCounter;
+	readTempHumidity();    // on 6th read all temp readings are averaged
+  }
 }
 
 #ifdef BATTERY_POWER      
@@ -242,13 +278,14 @@ void loop()
  * algorithm will only work when the Vinduino Sensor Station board is
  * powered by the battery.  When the board is powered by the USB
  * programming cable (i.e., board is powered/tethered to 
- * your laptop) this algorithm will return  value between 1 and 0. 
+ * your laptop) this algorithm will return value less than 1. 
  *******************************************************************/
 float readVcc() 
 {
-  float Vcc = analogRead(3)*0.00647;
+  float Vcc = analogRead(3) * 0.00647;
   return(Vcc);  
 }
+
 #else
 	
 /*******************************************************************
@@ -294,6 +331,31 @@ float readVcc()
 #endif
 
 
+/*******************************************************************
+ * Read temperature. Read humidity (set to 0 if not using DHT22).
+ * NOTE: first time reading temp of DS18B20 the value is +185°F
+ *******************************************************************/
+void readTempHumidity() 
+{	
+#ifdef USING_DHT
+  float temp = theDHT.readTemperature(IN_FAREN, false);
+  humidity = theDHT.readHumidity(false);
+#else
+  theDS18B20.requestTemperatures(); 
+  float temp = (theDS18B20.getTempFByIndex(0));
+  humidity = 0;  // add so ds18B20 records and DHT22 records have same fields
+#endif 
+
+  if(!isnan(temp))
+  {
+	if( temp != (float)185)     // ignore the "power on" / reset value 
+	{
+      sumOfTempReadings += temp;
+	  ++numOfTempReadings;
+	}
+  }
+}
+
 /******************************************************************************
  * read all sensors, send sensor data to Internet end point
  *******************************************************************************/
@@ -333,25 +395,25 @@ void readSensorsAndSendData()
   {
     dtostrf(Vcc,4,2,strVcc);
   }
+  
   delay(1000);
  
-  // get temperature reading; also humidity reading for DHT22 configuration
-#ifdef USING_DHT
-  float temp = theDHT.readTemperature(IN_FAREN, false);
-  float humidity = theDHT.readHumidity(false);
-  
-#else
-  theDS18B20.requestTemperatures(); 
-  float temp = (theDS18B20.getTempFByIndex(0));
-  float humidity = 0;  // indicates no humidity reading was taken
-#endif 
-  if(isnan(temp))
+  readTempHumidity();
+  if(numOfTempReadings > 0)
   {
-    sprintf(strTemp,"%s","NAN");	  
+    float temp = sumOfTempReadings / numOfTempReadings;
+    if(isnan(temp))
+    {
+      sprintf(strTemp,"%s","NAN");	  
+    }
+    else
+    {
+      dtostrf(temp,4,2,strTemp);
+    }
   }
   else
   {
-    dtostrf(temp,4,2,strTemp);
+    sprintf(strTemp,"%s","NO_DATA"); 
   }
   if(isnan(humidity))
   {
@@ -361,9 +423,10 @@ void readSensorsAndSendData()
   {
     dtostrf(humidity,4,2,strHumidity);
   }
+  
   delay(1000);
      
-  /* a useful block print statements for debugging purposes
+  /* a useful block print statements for debugging purposes with programming cable
   Serial.print("************************************ Begin: Sensor Readings");
   Serial.println("******************************************");
   Serial.print("Vcc: ");
@@ -435,17 +498,17 @@ void selectSensor(int sensor_selection)
  **********************************************************************************/
 void measureMoisture()
 {
-  const long    KNOWN_RESISTOR = 4750;  // the value of Resistor 9 and Resistor 10 expressed in Ohms;
-                                        // expressed in Ohms.  Used as ref in resistance calculation
-  const int     ZERO_CALIBRATION = 95;  // to compensate for resistance added to the circuit
-                                        // by the Mux switches
+  const long    KNOWN_RESISTOR = 4750;  // value of Resistor 9 and Resistor 10 expressed
+                                        // in Ohms; used as ref in resistance calculation
+  const int     ZERO_CALIBRATION = 95;  // to compensate for resistance added to the
+                                        // circuit by the Mux switches
   long          resistance;
   unsigned long supplyVoltage;
   unsigned long sensorVoltage;
  				
   initArray();   // remove undefines on initial use or previous readings on reuse
 
-  for (int i = 0; i < NUM_READS; i++) 
+  for (int i = 0; i < SMS_NUM_READS; i++) 
   {
     pinMode(SM_SENS_DRIVER_A, OUTPUT); 
     digitalWrite(SM_SENS_DRIVER_A, LOW);  
@@ -485,7 +548,7 @@ void addReading(long resistance)
 {
   soilSensorReadings[indexToAddReading++] = resistance;
   
-  if (indexToAddReading >= NUM_READS)
+  if (indexToAddReading >= SMS_NUM_READS)
   {
     indexToAddReading = 0;
   }
@@ -499,12 +562,12 @@ long averageReadings()
 {
   long sum = 0;
   
-  for (int i = 0; i < NUM_READS; i++)
+  for (int i = 0; i < SMS_NUM_READS; i++)
   {
     sum += soilSensorReadings[i];
   }
   
-  return((long)(sum / NUM_READS));
+  return((long)(sum / SMS_NUM_READS));
 }
 
 /***************************************************************************
@@ -513,7 +576,7 @@ long averageReadings()
  ***************************************************************************/
 void initArray()
 {
-  for (int i = 0; i < NUM_READS; i++)
+  for (int i = 0; i < SMS_NUM_READS; i++)
   {
     soilSensorReadings[i] = 0;	  
   }
@@ -566,13 +629,13 @@ void PCF8563AlarmOff()
 
 /*************************************************************
  * PCF8563 Timer: 
- * If an alarm has been tripped, turn on WiFi and reset alarm
+ * If an alarm has been tripped reset alarm
  *************************************************************/
 void checkPCF8563Alarm()
 {
   byte settings = readPCF8563CntrlReg2();
   
-  // if alarm is set, turn on WiFi and reset "alarm flag"
+  // if alarm is set, reset "alarm flag"
   if ((settings & B00000100) == B00000100)
   {
     PCF8563AlarmOff();
@@ -581,7 +644,7 @@ void checkPCF8563Alarm()
 
 /************************************************************************************** 
  * PCF8563 Timer:
- * Configure the timer to sec/min/hr, set timer value, and kick off an initial alarm 
+ * Configure timer to sec/min/hr, set timer value, and kick off initial alarm processing 
  **************************************************************************************/
 void setTimerPCF8563()
 {
@@ -593,11 +656,15 @@ void setTimerPCF8563()
  
   Wire.beginTransmission(PCF_8563_ADDRESS);
   Wire.write(PCF_8563_TIMER_VAL_ADDR);       // access PCF timer value
-  Wire.write(PCF_8563_SET_TIMER_4_HR);     // set it
+  Wire.write(PCF_8563_SET_TIMER_15_MIN);     // set it
   Wire.endTransmission();
 
-  // setting alarm to cause immediate alarm to kick off first sensor read
-  // subsequent alarms will occur at regular intervals set by a timer value
+  // This section forces an immediate "alarm trigger" / "wake up processing" to
+  // occur (instead of waiting for set period of time) after initial boot up
+  // of the microcontroller.  All subsequent alarm trigger / wake up processing
+  // will occur after the set period of time has elapsed.  Remove this section
+  // if you don't want alarm trigger / wake  up processing immediately following
+  // boot up of the microcontroller.
   Wire.beginTransmission(PCF_8563_ADDRESS);   // access PCF
   Wire.write(PCF_8563_REG2_ADDR);             // index to PCF cntrl reg 2
   Wire.write(B00000001);                      // clear all flags, enable timer intterupt
@@ -611,14 +678,8 @@ void setTimerPCF8563()
 void sendSensorData(char* strTemp, char* strHumidity, char* strSensor1, 
                     char* strSensor2, char* strSensor3, char* strVcc )
 {
-	
-	
   char buffer[256];
   
-  // turn on WiFi chip
-  digitalWrite(WIFI_PIN, HIGH);
-  delay(1000);  
-	
   // configure details of the Internet endpoint
   sprintf(buffer,"%s%s%s", "AT+CIPSTART=\"TCP\",\"", THING_SPEAK_IP, "\",80");
   
@@ -639,7 +700,7 @@ void sendSensorData(char* strTemp, char* strHumidity, char* strSensor1,
 		  "&field6=", strSensor3, "\r\n");  
 #endif		  
 
-  // set sensor readings to Internet endpoint
+  // send sensor readings to Internet endpoint
   Serial.print("AT+CIPSEND=");     
   Serial.println(strlen(buffer));   
   delay(1000);
@@ -649,7 +710,7 @@ void sendSensorData(char* strTemp, char* strHumidity, char* strSensor1,
 
 /*************************************************************************
  * Comms:
- * join the local wireless network
+ * Turn on the ESP8266 and then join the local wireless network
  *
  * ESP8266
  *   You configure the ESP8266 to work in "station", "access point" mode,
