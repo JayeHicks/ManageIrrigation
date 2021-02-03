@@ -1,0 +1,235 @@
+<!--
+Jaye Hicks 2020
+
+Lonesome Vine main page that provides links for launching the three single page web applications: 'Control Sensors / Alarms', 'View Logs', and ' View Recent Sensor Data.'  Each individual single page web application provides its own security.
+
+Obligatory legal disclaimer:
+ You are free to use this source code (this file and all other files 
+ referenced in this file) "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER 
+ EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE 
+ ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THIS SOURCE CODE IS WITH 
+ YOU.  SHOULD THE SOURCE CODE PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL 
+ NECESSARY SERVICING, REPAIR OR CORRECTION. See the GNU GENERAL PUBLIC 
+ LICENSE Version 3, 29 June 2007 for more details.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+<title>Lonesome Vine Operations Management</title>
+<meta charset="UTF-8">
+</head>
+<body>
+<img src="banner_small.jpg"><br>
+Howdy and welcome to Lonesome Vine Winery and Vineyard IT Operations.<br>
+Use the launch buttons below to access the IT operartions web applications.
+<br><br>
+
+<fieldset style="width:450px">
+<legend><b>Control Sensors / Alarms Application</b></legend>
+<ul style = "list-style-type:disc">
+<li>View most recent sensor readings</li>
+<li>Toggle sensor stations 'online' / 'offline'</li>
+<li>Configure alarms / guards</li>
+<li>Ad hoc launch alarm state detection processing </li>
+<li>Enter/edit planting dates for each individual vineyard locations</li>
+</ul>
+<input type="button" value="Launch" onclick="window.open('control-sensors-alarms.html')" style="width:75px"/>
+</fieldset>
+<br>
+
+<fieldset style="width:450px">
+<legend><b>View System Logs Application</b></legend>
+<ul style = "list-style-type:disc">
+<li>View most recent sensor readings</li>
+<li>Select year/month/day and view informational messages</li>
+<li>Select year/month/day and view all error and alarm messages</li>
+</ul>
+<input type="button" value="Launch" onclick="window.open('view-logs.html')" style="width:75px"/>
+</fieldset>
+<br>
+
+<fieldset style="width:450px">
+<legend><b>View Recent Sensor Data Application</b></legend>
+<ul style = "list-style-type:disc">
+<li>View most recent sensor readings</li>
+<li>Select year/month/day and view recent, unarchived sensor data</li>
+</ul>
+<input type="button" value="Launch" onclick="window.open('view-recent-sensor-data.html')" style="width:75px"/>
+</fieldset>
+<br>
+
+<fieldset style="width:450px">
+<legend><b>Unix / Epoch Time Stamp Utility</b></legend>
+<ul style = "list-style-type:disc">
+<li>Number of seconds that have elapsed since Jan 1, 1970</li>
+<li>Add to go forward in time, subtract to go back in time</li>
+<li>(3,600 sec / hour), (86,400 sec / day), (31,536,000 sec / year)</li>
+<li>FYI: will roll over to 0 in Jan 19, 2038</li>
+</ul>
+<fieldset>
+<legend>Human Time to Time Stamp (local tz; hr 1 / min 1 of day)</legend>
+Year: <input type="text" id="inputYear" style="width:30px" size="4" maxlength="4" name="inputYear"> 
+Month: <input type="text" id="inputMonth" style="width:15px" size="2" maxlength="2" name="inputMonth">
+Day: <input type="text" id="inputDay" style="width:15px" size="2" maxlength="2" name="inputDay"> 
+&nbsp &nbsp &nbsp <input type="submit" class="buttons" value="Go" id="humanToStampGo" style="width:35px">
+<br>
+<br>
+Time Stamp: <span id = "result1"></span><br><br>
+</fieldset>
+<br>
+<fieldset>
+<legend>Time Stamp to Human Time (local tz)</legend>
+Stamp: <input type="text" id="inputStamp" style="width:75px" size="10" maxlength="10" name="inputStamp">  
+&nbsp &nbsp &nbsp <input type="submit" class="buttons" value="Go" id="stampToHumanGo" style="width:35px">
+<br>
+<br>
+Human Readable: <span id = "result2"></span><br><br>
+</fieldset>
+
+<script>
+var days_in_months = [0,31,28,31,30,31,30,31,31,30,31,30,31];
+
+function HookUpButtons()
+{
+  document.getElementById("humanToStampGo").onclick = function()
+    { HumanToStamp(document.getElementById("inputYear").value,
+                   document.getElementById("inputMonth").value,
+		           document.getElementById("inputDay").value); } 
+  document.getElementById("stampToHumanGo").onclick = function()
+    { StampToHuman(document.getElementById("inputStamp").value); }   
+}
+
+function GetDaysOfMonth(year, month)
+{
+  var days = 0;
+  var is_leap = false;
+  
+  if((year > 0) && ((month > 0) && (month < 13)))
+  {
+    //detect a leap year
+    if (year % 4 != 0)
+    {
+      is_leap = false;
+    }
+    else if (year % 100 != 0)
+    {
+      is_leap = true;
+    }
+    else if (year % 400 != 0)
+    {
+      is_leap = false;
+    }
+    else
+    {
+      is_leap = true; 
+    }
+	
+	//get the number of days
+    if(is_leap && (month == 2))
+    {
+      days = 29;
+    }
+    else
+	{
+      days = days_in_months[month];
+	}
+  }
+  return(days);
+}
+
+function PadLeftZero(value)
+{
+  var return_string = "";
+  if(value < 10)
+  {
+    return_string = "0";
+  }
+  return_string += value.toString();
+  return(return_string);
+}
+
+function HumanToStamp(year, month, day)
+{
+  year_str = year.trim();
+  month_str = month.trim();
+  day_str = day.trim();
+  
+  document.getElementById("result1").innerHTML = '';
+
+  var reg_exp = new RegExp('^[0-9]+$');  //digits only
+  if((reg_exp.test(year_str)) && (reg_exp.test(month_str)) && (reg_exp.test(day_str)))
+  {
+    year_int = parseInt(year_str);
+    month_int = parseInt(month_str);
+    day_int = parseInt(day_str);
+    if(((year_int >= 1970) && (year_int <= 2038)) && 
+	   ((month_int > 0) && (month_int < 13)) &&
+       ((day_int > 0) && (day_int <= GetDaysOfMonth(year_int, month_int)))) 
+    {
+	  //create a time stamp for hour 1, minute 1 of the given year, month, day
+	  var dateString = PadLeftZero(parseInt(day_str,10)) +"-" + 
+	                   PadLeftZero(parseInt(month_str,10)) + "-" + 
+					   year_str + " 1:01";
+	  var dateTimeParts = dateString.split(' ');
+      var timeParts = dateTimeParts[1].split(':');
+      var dateParts = dateTimeParts[0].split('-');
+	  var new_date =  new Date(dateParts[2], parseInt(dateParts[1], 10) - 1, 
+	                         dateParts[0], timeParts[0], timeParts[1]);
+	  var new_date_ts_num = Math.trunc(new_date.getTime() / 1000);
+	  
+	  document.getElementById("result1").innerHTML = new_date_ts_num.toString();
+    }
+	else
+	{
+	  alert("Invalid date specified. Please try again.");
+	  document.getElementById("inputYear").value = '';
+      document.getElementById("inputMonth").value = '';
+	  document.getElementById("inputDay").value = '';
+	}
+  }
+  else
+  {
+    alert("Invalid input.  Please try again."); 
+	document.getElementById("inputYear").value = '';
+    document.getElementById("inputMonth").value = '';
+	document.getElementById("inputDay").value = '';
+  }
+}
+
+function StampToHuman(stamp)
+{
+  var human_readable = "";
+  var reg_exp = new RegExp('^[0-9]+$');
+  
+  document.getElementById("result2").innerHTML = '';
+  
+  stamp = stamp.trim();
+  if(reg_exp.test(stamp))
+  {	
+	var date = new Date(stamp * 1000); //need to supply milliseconds
+	var year = date.getFullYear();
+	human_readable = year.toString() + "-";
+	var month = date.getMonth() + 1;  //due to Jan == 0
+	human_readable += PadLeftZero(month)
+    var day = date.getDate();
+	human_readable += "-" + PadLeftZero(day) + "T";
+	var hours = date.getHours();
+	human_readable += PadLeftZero(hours) + ":";
+	var minutes = date.getMinutes();
+	human_readable += PadLeftZero(minutes);
+	
+	document.getElementById("result2").innerHTML = human_readable;
+  }
+  else
+  {
+	alert("Invalid input. Please try again.");
+	document.getElementById("inputStamp").value = '';
+  }
+}
+
+HookUpButtons();
+</script>
+
+</body>
+</html>

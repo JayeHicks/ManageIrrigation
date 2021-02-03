@@ -1,0 +1,2293 @@
+<!--
+Jaye Hicks 2020
+
+Lonesome Vine operations single page web application.  User logon is required to access this application.
+User ids and passwords are maintained in AWS Cognito.  Data that is displayed / updated by this
+application is maintained across multiple AWS DynmoDB Tables.
+
+Obligatory legal disclaimer:
+ You are free to use this source code (this file and all other files 
+ referenced in this file) "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER 
+ EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE 
+ ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THIS SOURCE CODE IS WITH 
+ YOU.  SHOULD THE SOURCE CODE PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL 
+ NECESSARY SERVICING, REPAIR OR CORRECTION. See the GNU GENERAL PUBLIC 
+ LICENSE Version 3, 29 June 2007 for more details.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+<title>Lonesome Vine At-The-Vine Management</title>
+<meta charset="UTF-8">
+</head>
+<body>
+<img src="banner_small.jpg"><br>
+<span id = "messageToUser">Howdy! I don't know who you are.  Please log on at the bottom of this page.</span><br><br>
+
+<fieldset style="width:750px">
+<legend> Vineyard Staions Current Sensor Readings</legend>
+<input type="submit" class="buttons" value="Refresh Display" id="vineyardStationsRefresh" style="width:110px">
+<br>
+<br>
+<table border="1">
+<tr>
+  <th align="left" style="padding:5px">Station</th>
+  <th align="left" style="padding:5px">Status</th>
+  <th align="left" style="padding:5px">Last Reported</th>
+  <th align="left" style="padding:5px">12" SMS</th>
+  <th align="left" style="padding:5px">24" SMS</th>
+  <th align="left" style="padding:5px">48" SMS</th>   
+  <th align="left" style="padding:5px">&#176F</th>
+  <th align="left" style="padding:5px">Volts</th>
+  <th align="left" style="padding:5px">Change Status</th>
+</tr>
+<tr>
+  <td style="padding:3px">A02N</td>
+  <td style="padding:3px" id="A02N_status_color"> <span id = "A02N_status">...</span> </td>
+  <td style="padding:3px" id="A02N_time_color"> <span id = "A02N_time">...</span> </td>
+  <td style="padding:3px" id="A02N_sms1_color"> <span id = "A02N_sms1">...</span></td>
+  <td style="padding:3px" id="A02N_sms2_color"> <span id = "A02N_sms2">...</span></td>
+  <td style="padding:3px" id="A02N_sms3_color"> <span id = "A02N_sms3">...</span></td>
+  <td style="padding:3px" id="A02N_temp_color"> <span id = "A02N_temp">...</span> </td>
+  <td style="padding:3px" id="A02N_battery_color"> <span id = "A02N_battery">...</span> </td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="A02NToggle" style="width:55px"> </td> 
+</tr>
+<tr>
+  <td style="padding:3px">A02S</td>
+  <td style="padding:3px" id="A02S_status_color"> <span id = "A02S_status">...</span> </td>
+  <td style="padding:3px" id="A02S_time_color"> <span id = "A02S_time">...</span> </td>
+  <td style="padding:3px" id="A02S_sms1_color"> <span id = "A02S_sms1">...</span></td>
+  <td style="padding:3px" id="A02S_sms2_color"> <span id = "A02S_sms2">...</span></td>
+  <td style="padding:3px" id="A02S_sms3_color"> <span id = "A02S_sms3">...</span></td>
+  <td style="padding:3px" id="A02S_temp_color"> <span id = "A02S_temp">...</span> </td>
+  <td style="padding:3px" id="A02S_battery_color"> <span id = "A02S_battery">...</span> </td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="A02SToggle" style="width:55px"> </td> 
+</tr>
+<tr>
+  <td style="padding:3px">A08M</td>
+  <td style="padding:3px" id="A08M_status_color"> <span id = "A08M_status">...</span> </td>
+  <td style="padding:3px" id="A08M_time_color"> <span id = "A08M_time">...</span> </td>
+  <td style="padding:3px" id="A08M_sms1_color"> <span id = "A08M_sms1">...</span></td>
+  <td style="padding:3px" id="A08M_sms2_color"> <span id = "A08M_sms2">...</span></td>
+  <td style="padding:3px" id="A08M_sms3_color"> <span id = "A08M_sms3">...</span></td>  
+  <td style="padding:3px" id="A08M_temp_color"> <span id = "A08M_temp">...</span> </td>
+  <td style="padding:3px" id="A08M_battery_color"> <span id = "A08M_battery">...</span> </td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="A08MToggle" style="width:55px"> </td>   
+</tr>
+<tr>
+  <td style="padding:3px">B02N</td>
+  <td style="padding:3px" id="B02N_status_color"> <span id = "B02N_status">...</span> </td>
+  <td style="padding:3px" id="B02N_time_color"> <span id = "B02N_time">...</span> </td>
+  <td style="padding:3px" id="B02N_sms1_color"> <span id = "B02N_sms1">...</span></td>
+  <td style="padding:3px" id="B02N_sms2_color"> <span id = "B02N_sms2">...</span></td>
+  <td style="padding:3px" id="B02N_sms3_color"> <span id = "B02N_sms3">...</span></td>
+  <td style="padding:3px" id="B02N_temp_color"> <span id = "B02N_temp">...</span> </td>
+  <td style="padding:3px" id="B02N_battery_color"> <span id = "B02N_battery">...</span> </td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="B02NToggle" style="width:55px"> </td>   
+</tr>
+<tr>
+  <td style="padding:3px">B02S</td>
+  <td style="padding:3px" id="B02S_status_color"> <span id = "B02S_status">...</span> </td>
+  <td style="padding:3px" id="B02S_time_color"> <span id = "B02S_time">...</span> </td>
+  <td style="padding:3px" id="B02S_sms1_color"> <span id = "B02S_sms1">...</span></td>
+  <td style="padding:3px" id="B02S_sms2_color"> <span id = "B02S_sms2">...</span></td>
+  <td style="padding:3px" id="B02S_sms3_color"> <span id = "B02S_sms3">...</span></td>  
+  <td style="padding:3px" id="B02S_temp_color"> <span id = "B02S_temp">...</span> </td>
+  <td style="padding:3px" id="B02S_battery_color"> <span id = "B02S_battery">...</span> </td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="B02SToggle" style="width:55px"> </td>   
+</tr>
+<tr>
+  <td style="padding:3px">B08M</td>
+  <td style="padding:3px" id="B08M_status_color"> <span id = "B08M_status">...</span> </td>
+  <td style="padding:3px" id="B08M_time_color"> <span id = "B08M_time">...</span> </td>
+  <td style="padding:3px" id="B08M_sms1_color"> <span id = "B08M_sms1">...</span></td>
+  <td style="padding:3px" id="B08M_sms2_color"> <span id = "B08M_sms2">...</span></td>
+  <td style="padding:3px" id="B08M_sms3_color"> <span id = "B08M_sms3">...</span></td>  
+  <td style="padding:3px" id="B08M_temp_color"> <span id = "B08M_temp">...</span> </td>
+  <td style="padding:3px" id="B08M_battery_color"> <span id = "B08M_battery">...</span> </td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="B08MToggle" style="width:55px"> </td> 
+</tr>
+<tr>
+  <td style="padding:3px">C02N</td>
+  <td style="padding:3px" id="C02N_status_color"> <span id = "C02N_status">...</span> </td>
+  <td style="padding:3px" id="C02N_time_color"> <span id = "C02N_time">...</span> </td>
+  <td style="padding:3px" id="C02N_sms1_color"> <span id = "C02N_sms1">...</span></td>
+  <td style="padding:3px" id="C02N_sms2_color"> <span id = "C02N_sms2">...</span></td>
+  <td style="padding:3px" id="C02N_sms3_color"> <span id = "C02N_sms3">...</span></td>
+  <td style="padding:3px" id="C02N_temp_color"> <span id = "C02N_temp">...</span> </td>
+  <td style="padding:3px" id="C02N_battery_color"> <span id = "C02N_battery">...</span> </td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="C02NToggle" style="width:55px"> </td> 
+</tr>
+<tr>
+  <td style="padding:3px">C02S</td>
+  <td style="padding:3px" id="C02S_status_color"> <span id = "C02S_status">...</span> </td>
+  <td style="padding:3px" id="C02S_time_color"> <span id = "C02S_time">...</span> </td>
+  <td style="padding:3px" id="C02S_sms1_color"> <span id = "C02S_sms1">...</span></td>
+  <td style="padding:3px" id="C02S_sms2_color"> <span id = "C02S_sms2">...</span></td>
+  <td style="padding:3px" id="C02S_sms3_color"> <span id = "C02S_sms3">...</span></td>
+  <td style="padding:3px" id="C02S_temp_color"> <span id = "C02S_temp">...</span> </td>
+  <td style="padding:3px" id="C02S_battery_color"> <span id = "C02S_battery">...</span> </td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="C02SToggle" style="width:55px"> </td> 
+</tr>
+<tr>
+  <td style="padding:3px">C08M</td>
+  <td style="padding:3px" id="C08M_status_color"> <span id = "C08M_status">...</span> </td>
+  <td style="padding:3px" id="C08M_time_color"> <span id = "C08M_time">...</span> </td>
+  <td style="padding:3px" id="C08M_sms1_color"> <span id = "C08M_sms1">...</span></td>
+  <td style="padding:3px" id="C08M_sms2_color"> <span id = "C08M_sms2">...</span></td>
+  <td style="padding:3px" id="C08M_sms3_color"> <span id = "C08M_sms3">...</span></td>
+  <td style="padding:3px" id="C08M_temp_color"> <span id = "C08M_temp">...</span> </td>
+  <td style="padding:3px" id="C08M_battery_color"> <span id = "C08M_battery">...</span> </td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="C08MToggle" style="width:55px"> </td> 
+</tr>
+<tr>
+  <td style="padding:3px">D02N</td>
+  <td style="padding:3px" id="D02N_status_color"> <span id = "D02N_status">...</span> </td>
+  <td style="padding:3px" id="D02N_time_color"> <span id = "D02N_time">...</span> </td>
+  <td style="padding:3px" id="D02N_sms1_color"> <span id = "D02N_sms1">...</span></td>
+  <td style="padding:3px" id="D02N_sms2_color"> <span id = "D02N_sms2">...</span></td>
+  <td style="padding:3px" id="D02N_sms3_color"> <span id = "D02N_sms3">...</span></td>
+  <td style="padding:3px" id="D02N_temp_color"> <span id = "D02N_temp">...</span> </td>
+  <td style="padding:3px" id="D02N_battery_color"> <span id = "D02N_battery">...</span> </td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="D02NToggle" style="width:55px"> </td>   
+</tr>
+<tr>
+  <td style="padding:3px">D02S</td>
+  <td style="padding:3px" id="D02S_status_color"> <span id = "D02S_status">...</span> </td>
+  <td style="padding:3px" id="D02S_time_color"> <span id = "D02S_time">...</span> </td>
+  <td style="padding:3px" id="D02S_sms1_color"> <span id = "D02S_sms1">...</span></td>
+  <td style="padding:3px" id="D02S_sms2_color"> <span id = "D02S_sms2">...</span></td>
+  <td style="padding:3px" id="D02S_sms3_color"> <span id = "D02S_sms3">...</span></td>
+  <td style="padding:3px" id="D02S_temp_color"> <span id = "D02S_temp">...</span> </td>
+  <td style="padding:3px" id="D02S_battery_color"> <span id = "D02S_battery">...</span> </td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="D02SToggle" style="width:55px"> </td> 
+</tr>
+<tr>
+  <td style="padding:3px">D08M</td>
+  <td style="padding:3px" id="D08M_status_color"> <span id = "D08M_status">...</span> </td>
+  <td style="padding:3px" id="D08M_time_color"> <span id = "D08M_time">...</span> </td>
+  <td style="padding:3px" id="D08M_sms1_color"> <span id = "D08M_sms1">...</span></td>
+  <td style="padding:3px" id="D08M_sms2_color"> <span id = "D08M_sms2">...</span></td>
+  <td style="padding:3px" id="D08M_sms3_color"> <span id = "D08M_sms3">...</span></td>
+  <td style="padding:3px" id="D08M_temp_color"> <span id = "D08M_temp">...</span> </td>
+  <td style="padding:3px" id="D08M_battery_color"> <span id = "D08M_battery">...</span> </td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="D08MToggle" style="width:55px"> </td>   
+</tr>
+<tr>
+  <td style="padding:3px">E02N</td>
+  <td style="padding:3px" id="E02N_status_color"> <span id = "E02N_status">...</span> </td>
+  <td style="padding:3px" id="E02N_time_color"> <span id = "E02N_time">...</span> </td>
+  <td style="padding:3px" id="E02N_sms1_color"> <span id = "E02N_sms1">...</span></td>
+  <td style="padding:3px" id="E02N_sms2_color"> <span id = "E02N_sms2">...</span></td>
+  <td style="padding:3px" id="E02N_sms3_color"> <span id = "E02N_sms3">...</span></td>
+  <td style="padding:3px" id="E02N_temp_color"> <span id = "E02N_temp">...</span> </td>
+  <td style="padding:3px" id="E02N_battery_color"> <span id = "E02N_battery">...</span> </td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="E02NToggle" style="width:55px"> </td>   
+</tr>
+<tr>
+  <td style="padding:3px">E02S</td>
+  <td style="padding:3px" id="E02S_status_color"> <span id = "E02S_status">...</span> </td>
+  <td style="padding:3px" id="E02S_time_color"> <span id = "E02S_time">...</span> </td>
+  <td style="padding:3px" id="E02S_sms1_color"> <span id = "E02S_sms1">...</span></td>
+  <td style="padding:3px" id="E02S_sms2_color"> <span id = "E02S_sms2">...</span></td>
+  <td style="padding:3px" id="E02S_sms3_color"> <span id = "E02S_sms3">...</span></td>
+  <td style="padding:3px" id="E02S_temp_color"> <span id = "E02S_temp">...</span> </td>
+  <td style="padding:3px" id="E02S_battery_color"> <span id = "E02S_battery">...</span> </td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="E02SToggle" style="width:55px"> </td>   
+</tr>
+<tr>
+  <td style="padding:3px">E08M</td>
+  <td style="padding:3px" id="E08M_status_color"> <span id = "E08M_status">...</span> </td>
+  <td style="padding:3px" id="E08M_time_color"> <span id = "E08M_time">...</span> </td>
+  <td style="padding:3px" id="E08M_sms1_color"> <span id = "E08M_sms1">...</span></td>
+  <td style="padding:3px" id="E08M_sms2_color"> <span id = "E08M_sms2">...</span></td>
+  <td style="padding:3px" id="E08M_sms3_color"> <span id = "E08M_sms3">...</span></td>
+  <td style="padding:3px" id="E08M_temp_color"> <span id = "E08M_temp">...</span> </td>
+  <td style="padding:3px" id="E08M_battery_color"> <span id = "E08M_battery">...</span> </td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="E08MToggle" style="width:55px"> </td> 
+</tr>
+<tr>
+  <td style="padding:3px">F02N</td>
+  <td style="padding:3px" id="F02N_status_color"> <span id = "F02N_status">...</span> </td>
+  <td style="padding:3px" id="F02N_time_color"> <span id = "F02N_time">...</span> </td>
+  <td style="padding:3px" id="F02N_sms1_color"> <span id = "F02N_sms1">...</span></td>
+  <td style="padding:3px" id="F02N_sms2_color"> <span id = "F02N_sms2">...</span></td>
+  <td style="padding:3px" id="F02N_sms3_color"> <span id = "F02N_sms3">...</span></td>
+  <td style="padding:3px" id="F02N_temp_color"> <span id = "F02N_temp">...</span> </td>
+  <td style="padding:3px" id="F02N_battery_color"> <span id = "F02N_battery">...</span> </td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="F02NToggle" style="width:55px"> </td>   
+</tr>
+<tr>
+  <td style="padding:3px">F02S</td>
+  <td style="padding:3px" id="F02S_status_color"> <span id = "F02S_status">...</span> </td>
+  <td style="padding:3px" id="F02S_time_color"> <span id = "F02S_time">...</span> </td>
+  <td style="padding:3px" id="F02S_sms1_color"> <span id = "F02S_sms1">...</span></td>
+  <td style="padding:3px" id="F02S_sms2_color"> <span id = "F02S_sms2">...</span></td>
+  <td style="padding:3px" id="F02S_sms3_color"> <span id = "F02S_sms3">...</span></td>
+  <td style="padding:3px" id="F02S_temp_color"> <span id = "F02S_temp">...</span> </td>
+  <td style="padding:3px" id="F02S_battery_color"> <span id = "F02S_battery">...</span> </td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="F02SToggle" style="width:55px"> </td> 
+</tr>
+<tr>
+  <td style="padding:3px">F08M</td>
+  <td style="padding:3px" id="F08M_status_color"> <span id = "F08M_status">...</span> </td>
+  <td style="padding:3px" id="F08M_time_color"> <span id = "F08M_time">...</span> </td>
+  <td style="padding:3px" id="F08M_sms1_color"> <span id = "F08M_sms1">...</span></td>
+  <td style="padding:3px" id="F08M_sms2_color"> <span id = "F08M_sms2">...</span></td>
+  <td style="padding:3px" id="F08M_sms3_color"> <span id = "F08M_sms3">...</span></td>
+  <td style="padding:3px" id="F08M_temp_color"> <span id = "F08M_temp">...</span> </td>
+  <td style="padding:3px" id="F08M_battery_color"> <span id = "F08M_battery">...</span> </td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="F08MToggle" style="width:55px"> </td>   
+</tr>
+<tr>
+  <td style="padding:3px">G02N</td>
+  <td style="padding:3px" id="G02N_status_color"> <span id = "G02N_status">...</span> </td>
+  <td style="padding:3px" id="G02N_time_color"> <span id = "G02N_time">...</span> </td>
+  <td style="padding:3px" id="G02N_sms1_color"> <span id = "G02N_sms1">...</span></td>
+  <td style="padding:3px" id="G02N_sms2_color"> <span id = "G02N_sms2">...</span></td>
+  <td style="padding:3px" id="G02N_sms3_color"> <span id = "G02N_sms3">...</span></td>
+  <td style="padding:3px" id="G02N_temp_color"> <span id = "G02N_temp">...</span> </td>
+  <td style="padding:3px" id="G02N_battery_color"> <span id = "G02N_battery">...</span> </td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="G02NToggle" style="width:55px"> </td>   
+</tr>
+<tr>
+  <td style="padding:3px">G02S</td>
+  <td style="padding:3px" id="G02S_status_color"> <span id = "G02S_status">...</span> </td>
+  <td style="padding:3px" id="G02S_time_color"> <span id = "G02S_time">...</span> </td>
+  <td style="padding:3px" id="G02S_sms1_color"> <span id = "G02S_sms1">...</span></td>
+  <td style="padding:3px" id="G02S_sms2_color"> <span id = "G02S_sms2">...</span></td>
+  <td style="padding:3px" id="G02S_sms3_color"> <span id = "G02S_sms3">...</span></td>
+  <td style="padding:3px" id="G02S_temp_color"> <span id = "G02S_temp">...</span> </td>
+  <td style="padding:3px" id="G02S_battery_color"> <span id = "G02S_battery">...</span> </td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="G02SToggle" style="width:55px"> </td>   
+</tr>
+<tr>
+  <td style="padding:3px">G08M</td>
+  <td style="padding:3px" id="G08M_status_color"> <span id = "G08M_status">...</span> </td>
+  <td style="padding:3px" id="G08M_time_color"> <span id = "G08M_time">...</span> </td>
+  <td style="padding:3px" id="G08M_sms1_color"> <span id = "G08M_sms1">...</span></td>
+  <td style="padding:3px" id="G08M_sms2_color"> <span id = "G08M_sms2">...</span></td>
+  <td style="padding:3px" id="G08M_sms3_color"> <span id = "G08M_sms3">...</span></td>
+  <td style="padding:3px" id="G08M_temp_color"> <span id = "G08M_temp">...</span> </td>
+  <td style="padding:3px" id="G08M_battery_color"> <span id = "G08M_battery">...</span> </td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Toggle" 
+    id="G08MToggle" style="width:55px"> </td>   
+</tr>
+</table>
+</fieldset>
+<br>
+<br>
+
+<fieldset style="width:510px">
+<legend> Absence Guard</legend>
+<input type="submit" class="buttons" value="Refresh Display" id="absenceGuardRefresh" style="width:110px"> &nbsp &nbsp
+<input type="submit" class="buttons" value="Run Now" id="absenceGuardRunNow" style="width:72px">
+<br>
+<br>
+<fieldset>
+<legend> Current Settings</legend>
+<b>Status: </b> <span id = "absenceGuardStatus">...</span><br>
+<b>Threshold: </b> <span id = "absenceGuardThreshValue">...</span><br>
+</fieldset>
+<br>
+<fieldset>
+<legend> Change Settings</legend>
+<fieldset>
+<legend>Turn On / Off</legend>
+<input type="submit" class="buttons" value="on" id="absenceGuardOn" style="width:30px" disabled="true"> <br><br>
+<input type="submit" class="buttons" value="off 1 day" id="absenceGuardOff1day" style="width:75px"> &nbsp
+<input type="submit" class="buttons" value="off 2 days" id="absenceGuardOff2days" style="width:75px"> &nbsp
+<input type="submit" class="buttons" value="off 3 days" id="absenceGuardOff3days" style="width:75px"> &nbsp
+<input type="submit" class="buttons" value="off 7 days" id="absenceGuardOff7days" style="width:75px"> &nbsp
+<input type="submit" class="buttons" value="off forever" id="absenceGuardOffIndef" style="width:75px">
+</fieldset>
+<br>
+<fieldset>
+<legend>Set Day Absence Threshold</legend>
+<input type="text" id="absenceGuardSetThreshInput" size="2" maxlength="2" style="width:15px"
+  name="absenceGuardSetThreshInput"> hours &nbsp &nbsp 
+<input type="submit" class="buttons" value="Set" id="absenceGuardSetThreshButton" style="width:35px">
+</fieldset>
+</fieldset>
+</fieldset>
+<br>
+<br>
+<fieldset style="width:510px">
+<legend> Battery Guard</legend>
+<input type="submit" class="buttons" value="Refresh Display" id="batteryGuardRefresh" style="width:110px"> &nbsp &nbsp
+<input type="submit" class="buttons" value="Run Now" id="batteryGuardRunNow" style="width:72px">
+<br>
+<br>
+<fieldset>
+<legend> Current Settings</legend>
+<b>Status: </b> <span id = "batteryGuardStatus">...</span><br>
+<b>Threshold: </b> <span id = "batteryGuardThreshValue">...</span><br>
+<b>Shelf Life: </b> <span id = "batteryGuardShelfValue">...</span><br>
+</fieldset>
+<br>
+<fieldset>
+<legend> Change Settings</legend>
+<fieldset>
+<legend>Turn On / Off</legend>
+<input type="submit" class="buttons" value="on" id="batteryGuardOn" style="width:30px" disabled="true"> <br><br>
+<input type="submit" class="buttons" value="off 1 day" id="batteryGuardOff1day" style="width:75px"> &nbsp
+<input type="submit" class="buttons" value="off 2 days" id="batteryGuardOff2days" style="width:75px"> &nbsp
+<input type="submit" class="buttons" value="off 3 days" id="batteryGuardOff3days" style="width:75px"> &nbsp
+<input type="submit" class="buttons" value="off 7 days" id="batteryGuardOff7days" style="width:75px"> &nbsp
+<input type="submit" class="buttons" value="off forever" id="batteryGuardOffIndef" style="width:75px">
+</fieldset>
+<br>
+<fieldset>
+<legend>Set Voltage Threshold</legend>
+<input type="text" id="batteryGuardSetThreshInput" size="4" maxlength="4" style="width:30px"
+  name="batteryGuardSetThreshInput"> volts &nbsp &nbsp 
+<input type="submit" class="buttons" value="Set" id="batteryGuardSetThreshButton" style="width:35px">
+</fieldset>
+<br>
+<fieldset>
+<legend>Set Data Shelf Life</legend>
+<input type="text" id="batteryGuardSetShelfInput" size="2" maxlength="2" style="width:15px"
+  name="batteryGuardSetShelfInput"> hours &nbsp &nbsp 
+<input type="submit" class="buttons" value="Set" id="batteryGuardSetShelfButton" style="width:35px">
+</fieldset>
+</fieldset>
+</fieldset>
+<br>
+<br>
+<fieldset style="width:510px">
+<legend> Freeze Guard</legend>
+<input type="submit" class="buttons" value="Refresh Display" id="freezeGuardRefresh" style="width:110px"> &nbsp &nbsp
+<input type="submit" class="buttons" value="Run Now" id="freezeGuardRunNow" style="width:72px">
+<br>
+<br>
+<fieldset>
+<legend> Current Settings</legend>
+<b>Status: </b> <span id = "freezeGuardStatus">...</span><br>
+<b>Threshold: </b> <span id = "freezeGuardThreshValue">...</span><br>
+<b>Shelf Life: </b> <span id = "freezeGuardShelfValue">...</span><br>
+</fieldset>
+<br>
+<fieldset>
+<legend> Change Settings</legend>
+<fieldset>
+<legend>Turn On / Off</legend>
+<input type="submit" class="buttons" value="on" id="freezeGuardOn" style="width:30px" disabled="true"> <br><br>
+<input type="submit" class="buttons" value="off 1 day" id="freezeGuardOff1day" style="width:75px"> &nbsp
+<input type="submit" class="buttons" value="off 2 days" id="freezeGuardOff2days" style="width:75px"> &nbsp
+<input type="submit" class="buttons" value="off 3 days" id="freezeGuardOff3days" style="width:75px"> &nbsp
+<input type="submit" class="buttons" value="off 7 days" id="freezeGuardOff7days" style="width:75px"> &nbsp
+<input type="submit" class="buttons" value="off forever" id="freezeGuardOffIndef" style="width:75px">
+</fieldset>
+<br>
+<fieldset>
+<legend>Set Temperature Threshold</legend>
+<input type="text" id="freezeGuardSetThreshInput" size="2" maxlength="2" style="width:15px"
+  name="freezeGuardSetThreshInput"> &#176F &nbsp &nbsp 
+<input type="submit" class="buttons" value="Set" id="freezeGuardSetThreshButton" style="width:35px">
+</fieldset>
+<br>
+<fieldset>
+<legend>Set Data Shelf Life</legend>
+<input type="text" id="freezeGuardSetShelfInput" size="2" maxlength="2" style="width:15px"
+  name="freezeGuardSetShelfInput"> hours &nbsp &nbsp 
+<input type="submit" class="buttons" value="Set" id="freezeGuardSetShelfButton" style="width:35px">
+</fieldset>
+</fieldset>
+</fieldset>
+<br>
+<br>
+<fieldset style="width:510px">
+<legend> Moisture Guard</legend>
+<input type="submit" class="buttons" value="Refresh Display" id="moistureGuardRefresh" style="width:110px"> &nbsp &nbsp
+<input type="submit" class="buttons" value="Run Now" id="moistureGuardRunNow" style="width:72px">
+<br>
+<br>
+<fieldset>
+<legend> Current Settings</legend>
+<b>Status: </b> <span id = "moistureGuardStatus">...</span><br>
+<b>Threshold: </b> <span id = "moistureGuardThreshValue">see "View and Set Threshold Values" section below</span><br>
+<b>Shelf Life: </b> <span id = "moistureGuardShelfValue">...</span><br>
+</fieldset>
+<br>
+<fieldset>
+<legend> Change Settings</legend>
+<fieldset>
+<legend>Turn On / Off</legend>
+<input type="submit" class="buttons" value="on" id="moistureGuardOn" style="width:30px" disabled="true"> <br><br>
+<input type="submit" class="buttons" value="off 1 day" id="moistureGuardOff1day" style="width:75px"> &nbsp
+<input type="submit" class="buttons" value="off 2 days" id="moistureGuardOff2days" style="width:75px"> &nbsp
+<input type="submit" class="buttons" value="off 3 days" id="moistureGuardOff3days" style="width:75px"> &nbsp
+<input type="submit" class="buttons" value="off 7 days" id="moistureGuardOff7days" style="width:75px"> &nbsp
+<input type="submit" class="buttons" value="off forever" id="moistureGuardOffIndef" style="width:75px">
+</fieldset>
+<br>
+<fieldset>
+<legend>View and Set Threshold Values</legend>
+<table border="1">
+<tr>
+  <th align="left" style="padding:5px">Station</th>
+  <th align="left" style="padding:5px">Value</th>
+  <th align="left" style="padding:5px">New Value</th>
+  <th align="left" style="padding:5px">Change Value</th>
+</tr>
+<tr>
+  <td style="padding:3px">A02N</td>
+  <td style="padding:3px"> <span id = "A02N_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="A02N_newSMSThresh" style="width:75px" size="4" maxlength="10" name="A02N_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="A02N_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">A02S</td>
+  <td style="padding:3px"> <span id = "A02S_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="A02S_newSMSThresh" style="width:75px" size="4" maxlength="10" name="A02S_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="A02S_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">A08M</td>
+  <td style="padding:3px"> <span id = "A08M_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="A08M_newSMSThresh" style="width:75px" size="4" maxlength="10" name="A08M_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="A08M_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">B02N</td>
+  <td style="padding:3px"> <span id = "B02N_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="B02N_newSMSThresh" style="width:75px" size="4" maxlength="10" name="B02N_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="B02N_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">B02S</td>
+  <td style="padding:3px"> <span id = "B02S_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="B02S_newSMSThresh" style="width:75px" size="4" maxlength="10" name="B02S_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="B02S_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">B08M</td>
+  <td style="padding:3px"> <span id = "B08M_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="B08M_newSMSThresh" style="width:75px" size="4" maxlength="10" name="B08M_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="B08M_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">C02N</td>
+  <td style="padding:3px"> <span id = "C02N_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="C02N_newSMSThresh" style="width:75px" size="4" maxlength="10" name="C02N_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="C02N_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">C02S</td>
+  <td style="padding:3px"> <span id = "C02S_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="C02S_newSMSThresh" style="width:75px" size="4" maxlength="10" name="C02S_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="C02S_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">C08M</td>
+  <td style="padding:3px"> <span id = "C08M_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="C08M_newSMSThresh" style="width:75px" size="4" maxlength="10" name="C08M_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="C08M_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">D02N</td>
+  <td style="padding:3px"> <span id = "D02N_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="D02N_newSMSThresh" style="width:75px" size="4" maxlength="10" name="D02N_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="D02N_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">D02S</td>
+  <td style="padding:3px"> <span id = "D02S_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="D02S_newSMSThresh" style="width:75px" size="4" maxlength="10" name="D02S_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="D02S_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">D08M</td>
+  <td style="padding:3px"> <span id = "D08M_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="D08M_newSMSThresh" style="width:75px" size="4" maxlength="10" name="D08M_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="D08M_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">E02N</td>
+  <td style="padding:3px"> <span id = "E02N_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="E02N_newSMSThresh" style="width:75px" size="4" maxlength="10" name="E02N_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="E02N_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">E02S</td>
+  <td style="padding:3px"> <span id = "E02S_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="E02S_newSMSThresh" style="width:75px" size="4" maxlength="10" name="E02S_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="E02S_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">E08M</td>
+  <td style="padding:3px"> <span id = "E08M_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="E08M_newSMSThresh" style="width:75px" size="4" maxlength="10" name="E08M_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="E08M_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">F02N</td>
+  <td style="padding:3px"> <span id = "F02N_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="F02N_newSMSThresh" style="width:75px" size="4" maxlength="10" name="F02N_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="F02N_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">F02S</td>
+  <td style="padding:3px"> <span id = "F02S_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="F02S_newSMSThresh" style="width:75px" size="4" maxlength="10" name="F02S_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="F02S_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">F08M</td>
+  <td style="padding:3px"> <span id = "F08M_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="F08M_newSMSThresh" style="width:75px" size="4" maxlength="10" name="F08M_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="F08M_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">G02N</td>
+  <td style="padding:3px"> <span id = "G02N_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="G02N_newSMSThresh" style="width:75px" size="4" maxlength="10" name="G02N_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="G02N_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">G02S</td>
+  <td style="padding:3px"> <span id = "G02S_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="G02S_newSMSThresh" style="width:75px" size="4" maxlength="10" name="G02S_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="G02S_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">G08M</td>
+  <td style="padding:3px"> <span id = "G08M_smsThresh">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="G08M_newSMSThresh" style="width:75px" size="4" maxlength="10" name="G08M_newSMSThresh"></td>
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="G08M_changeSMSThresh" style="width:65px"> </td>  
+</tr>
+
+</table>
+</fieldset>
+<br>
+<fieldset>
+<legend>Set Data Shelf Life</legend>
+<input type="text" id="moistureGuardSetShelfInput" size="2" maxlength="2" style="width:15px"
+  name="moistureGuardSetShelfInput"> days &nbsp &nbsp 
+<input type="submit" class="buttons" value="Set" id="moistureGuardSetShelfButton" style="width:35px">
+</fieldset>
+</fieldset>
+</fieldset>
+<br>
+<br>
+<fieldset style="width:510px">
+<legend> Manage Dates Planted</legend>
+<input type="submit" class="buttons" value="Refresh Display" id="plantedDatesRefresh" style="width:110px">
+<br>
+<br>
+<fieldset class="fieldset-auto-width">
+<legend>View and Set Dates</legend>
+<table border="1">
+<tr>
+  <th align="left" style="padding:5px">Station</th>
+  <th align="left" style="padding:5px">Date</th>
+  <th align="left" style="padding:5px">New Year</th>
+  <th align="left" style="padding:5px">New Month</th>
+  <th align="left" style="padding:5px">Change Date</th>
+</tr>
+<tr>
+  <td style="padding:3px">A02N</td>
+  <td style="padding:3px"> <span id = "A02N_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="A02N_newYearInput" style="width:30px" size="4" maxlength="4" name="A02N_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="A02N_newMonthInput" style="width:15px" size="2" maxlength="2" name="A02N_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="A02N_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">A02S</td>
+  <td style="padding:3px"> <span id = "A02S_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="A02S_newYearInput" style="width:30px" size="4" maxlength="4" name="A02S_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="A02S_newMonthInput" style="width:15px" size="2" maxlength="2" name="A02S_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="A02S_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">A08M</td>
+  <td style="padding:3px"> <span id = "A08M_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="A08M_newYearInput"  style="width:30px" size="4" maxlength="4" name="A08M_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="A08M_newMonthInput" style="width:15px" size="2" maxlength="2" name="A08M_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="A08M_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">B02N</td>
+  <td style="padding:3px"> <span id = "B02N_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="B02N_newYearInput" style="width:30px" size="4" maxlength="4" name="B02N_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="B02N_newMonthInput" style="width:15px" size="2" maxlength="2" name="B02N_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="B02N_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">B02S</td>
+  <td style="padding:3px"> <span id = "B02S_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="B02S_newYearInput" style="width:30px" size="4" maxlength="4" name="B02S_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="B02S_newMonthInput" style="width:15px" size="2" maxlength="2" name="B02S_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="B02S_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">B08M</td>
+  <td style="padding:3px"> <span id = "B08M_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="B08M_newYearInput" style="width:30px" size="4" maxlength="4" name="B08M_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="B08M_newMonthInput" style="width:15px" size="2" maxlength="2" name="B08M_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="B08M_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">C02N</td>
+  <td style="padding:3px"> <span id = "C02N_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="C02N_newYearInput" style="width:30px" size="4" maxlength="4" name="C02N_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="C02N_newMonthInput" style="width:15px" size="2" maxlength="2" name="C02N_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="C02N_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">C02S</td>
+  <td style="padding:3px"> <span id = "C02S_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="C02S_newYearInput" style="width:30px" size="4" maxlength="4" name="C02S_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="C02S_newMonthInput" style="width:15px" size="2" maxlength="2" name="C02S_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="C02S_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">C08M</td>
+  <td style="padding:3px"> <span id = "C08M_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="C08M_newYearInput" style="width:30px" size="4" maxlength="4" name="C08M_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="C08M_newMonthInput" style="width:15px" size="2" maxlength="2" name="C08M_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="C08M_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">D02N</td>
+  <td style="padding:3px"> <span id = "D02N_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="D02N_newYearInput" style="width:30px" size="4" maxlength="4" name="D02N_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="D02N_newMonthInput" style="width:15px" size="2" maxlength="2" name="D02N_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="D02N_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">D02S</td>
+  <td style="padding:3px"> <span id = "D02S_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="D02S_newYearInput" style="width:30px" size="4" maxlength="4" name="D02S_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="D02S_newMonthInput" style="width:15px" size="2" maxlength="2" name="D02S_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="D02S_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">D08M</td>
+  <td style="padding:3px"> <span id = "D08M_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="D08M_newYearInput" style="width:30px" size="4" maxlength="4" name="D08M_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="D08M_newMonthInput" style="width:15px" size="2" maxlength="2" name="D08M_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="D08M_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">E02N</td>
+  <td style="padding:3px"> <span id = "E02N_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="E02N_newYearInput" style="width:30px" size="4" maxlength="4" name="E02N_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="E02N_newMonthInput" style="width:15px" size="2" maxlength="2" name="E02N_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="E02N_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">E02S</td>
+  <td style="padding:3px"> <span id = "E02S_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="E02S_newYearInput" style="width:30px" size="4" maxlength="4" name="E02S_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="E02S_newMonthInput" style="width:15px" size="2" maxlength="2" name="E02S_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="E02S_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">E08M</td>
+  <td style="padding:3px"> <span id = "E08M_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="E08M_newYearInput" style="width:30px" size="4" maxlength="4" name="E08M_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="E08M_newMonthInput" style="width:15px" size="2" maxlength="2" name="E08M_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="E08M_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">F02N</td>
+  <td style="padding:3px"> <span id = "F02N_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="F02N_newYearInput" style="width:30px" size="4" maxlength="4" name="F02N_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="F02N_newMonthInput" style="width:15px" size="2" maxlength="2" name="F02N_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="F02N_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">F02S</td>
+  <td style="padding:3px"> <span id = "F02S_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="F02S_newYearInput" style="width:30px" size="4" maxlength="4" name="F02S_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="F02S_newMonthInput" style="width:15px" size="2" maxlength="2" name="F02S_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="F02S_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">F08M</td>
+  <td style="padding:3px"> <span id = "F08M_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="F08M_newYearInput" style="width:30px" size="4" maxlength="4" name="F08M_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="F08M_newMonthInput" style="width:15px" size="2" maxlength="2" name="F08M_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="F08M_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">G02N</td>
+  <td style="padding:3px"> <span id = "G02N_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="G02N_newYearInput" style="width:30px" size="4" maxlength="4" name="G02N_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="G02N_newMonthInput" style="width:15px" size="2" maxlength="2" name="G02N_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="G02N_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">G02S</td>
+  <td style="padding:3px"> <span id = "G02S_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="G02S_newYearInput" style="width:30px" size="4" maxlength="4" name="G02S_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="G02S_newMonthInput" style="width:15px" size="2" maxlength="2" name="G02S_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="G02S_changeDate" style="width:65px"> </td>  
+</tr>
+<tr>
+  <td style="padding:3px">G08M</td>
+  <td style="padding:3px"> <span id = "G08M_planted">...</span></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="G08M_newYearInput" style="width:30px" size="4" maxlength="4" name="G08M_newYearInput"></td>
+  <td style="padding:3px" align="center">
+    <input type="text" id="G08M_newMonthInput" style="width:15px" size="2" maxlength="2" name="G08M_newMonthInput"></td> 
+  <td style="padding:3px" align="center"><input type="submit" class="buttons" value="Change" 
+    id="G08M_changeDate" style="width:65px"> </td>  
+</tr>
+</table>
+</fieldset>
+</fieldset>
+<br>
+<br>
+<fieldset style="width:510px">
+<legend> Logon</legend>
+<b>User Name:</b> &nbsp &nbsp
+<input type="text" id="username" name="username">
+<br><br>
+<b>Password:</b> &nbsp &nbsp
+<input type="password" id="password" name="password">
+<br><br>
+<button onclick="LogInToApp()" id="logonbutton">Logon</button>
+</fieldset>
+<br>
+<br>
+
+<script src="amazon-cognito-identity.min.js"> </script>
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.331.0.min.js"></script>
+
+<script type="text/javascript" src="lib/axios/dist/axios.standalone.js"></script>
+<script type="text/javascript" src="lib/CryptoJS/rollups/hmac-sha256.js"></script>
+<script type="text/javascript" src="lib/CryptoJS/rollups/sha256.js"></script>
+<script type="text/javascript" src="lib/CryptoJS/components/hmac.js"></script>
+<script type="text/javascript" src="lib/CryptoJS/components/enc-base64.js"></script>
+<script type="text/javascript" src="lib/url-template/url-template.js"></script>
+<script type="text/javascript" src="lib/apiGatewayCore/sigV4Client.js"></script>
+<script type="text/javascript" src="lib/apiGatewayCore/apiGatewayClient.js"></script>
+<script type="text/javascript" src="lib/apiGatewayCore/simpleHttpClient.js"></script>
+<script type="text/javascript" src="lib/apiGatewayCore/utils.js"></script>
+<script type="text/javascript" src="apigClient.js"></script>
+
+<script>
+ 	  
+/////////////////////////////////////////////////////////////////////////////////////////
+// Generic data stuctures and utility functions
+/////////////////////////////////////////////////////////////////////////////////////////
+var vineyard_stations = ["A02N", "A02S", "A08M", "B02N", "B02S", "B08M", "C02N",
+                         "C02S", "C08M", "D02N", "D02S", "D08M", "E02N", "E02S", 
+						 "E08M", "F02N", "F02S", "F08M", "G02N", "G02S", "G08M"];
+					   
+var all_button_groups = ["vineyardStations", "absenceGuard", "batteryGuard", 
+                         "freezeGuard", "moistureGuard", "plantedDates"];
+var all_guard_prefixes = ["absenceGuard", "batteryGuard", "freezeGuard", 
+                               "moistureGuard"];
+var all_guards_w_single_thresh = ["absenceGuard", "batteryGuard", "freezeGuard"];
+var all_guards_w_shelf         = ["batteryGuard", "freezeGuard", "moistureGuard"];
+
+const CONSOLE 			= 1;
+const GUI 				= 2;
+const CONSOLE_AND_GUI 	= 3;
+
+const LONG 				= 1;
+const SHORT 			= 2;
+
+const ENABLE              = 1;
+const DISABLE             = 2;
+const NO_CHANGE           = 3;
+const RESET_VALUE         = 1;
+const DO_NOT_RESET_VALUE  = 2;
+
+function SendMessage(destination, message)
+{
+  if(message.length > 0)
+  {
+    if((destination == CONSOLE) || (destination == CONSOLE_AND_GUI))
+    {
+      console.log(message);
+    }
+  
+    if((destination == GUI) || (destination == CONSOLE_AND_GUI))
+    {
+      document.getElementById("messageToUser").innerHTML = message;
+    }
+  }
+}
+
+// Loop through an array to enable/disable all GUI controls and optionally
+// set the value of the controls to ''.  All GUI contorls have a unique prefix
+// and these unique values reside in the param prefix_list (e.g., ['A02N', 'A02S', 
+// ...]). All GUI controls share the same suffix (e.g., 'GuardStatus')
+function EnableDisableSetItems(prefix_list, item_suffix, desired_state, reset)
+{
+  var count = prefix_list.length;
+  for (var index = 0; index < count; index++)
+  {
+    if(reset == RESET_VALUE)
+	{
+      document.getElementById(prefix_list[index] + item_suffix).value = '';
+	}
+	if(desired_state == ENABLE)
+	{
+	  document.getElementById(prefix_list[index] + item_suffix).disabled = false;
+	}
+	else if(desired_state == DISABLE)
+	{
+	  document.getElementById(prefix_list[index] + item_suffix).disabled = true;	  
+	}
+  }
+}
+
+// Turn on/enable all GUI controls for a given guard (e.g., freeze guard)
+function TurnGuardGUIOn(guard_name)
+{
+  guard_name = guard_name.trim();
+  if(all_guard_prefixes.includes(guard_name))
+  {
+    //common across all guards
+    document.getElementById(guard_name + "On").disabled = true;
+    document.getElementById(guard_name + "Off1day").disabled = false;
+    document.getElementById(guard_name + "Off2days").disabled = false;
+    document.getElementById(guard_name + "Off3days").disabled = false;
+    document.getElementById(guard_name + "Off7days").disabled = false;
+    document.getElementById(guard_name + "OffIndef").disabled = false;
+    document.getElementById(guard_name + "Status").innerHTML = 'on';
+    document.getElementById(guard_name + "ThreshValue").style.color = 'black';
+    document.getElementById(guard_name + "ThreshValue").style.fontStyle = 'normal';
+
+	if(all_guards_w_single_thresh.includes(guard_name))
+	{
+      document.getElementById(guard_name + "SetThreshButton").disabled = false;
+      document.getElementById(guard_name + "SetThreshInput").disabled = false;  
+	  document.getElementById(guard_name + "SetThreshInput").value = '';
+	}
+  
+	if(all_guards_w_shelf.includes(guard_name))
+	{
+	  document.getElementById(guard_name + "SetShelfButton").disabled = false;
+      document.getElementById(guard_name + "SetShelfInput").disabled = false;  
+      document.getElementById(guard_name + "SetShelfInput").value = ''; 
+      document.getElementById(guard_name + "ShelfValue").style.color = 'black';
+      document.getElementById(guard_name + "ShelfValue").style.fontStyle = 'normal';  
+	}
+	
+	if(guard_name == 'moistureGuard')
+	{
+	  EnableDisableSetItems(vineyard_stations,"_newSMSThresh", 
+	    ENABLE, RESET_VALUE);
+      EnableDisableSetItems(vineyard_stations,"_changeSMSThresh", 
+	    ENABLE, DO_NOT_RESET_VALUE);
+	}
+  }
+  else
+  {	
+    SendMessage(CONSOLE, "TurnGuardGUIOn() called with bad guard name.");
+  }
+}
+
+// turn off/disable all GUI controls for a given guard (e.g., freeze guard)
+function TurnGuardGUIOff(guard_name, off_until_message)
+{
+  guard_name = guard_name.trim();
+  
+  if(off_until_message == '')
+  {
+    off_until_message = '...';
+  }
+  else
+  {
+    off_until_message = off_until_message.trim();
+  }
+  
+  if(all_guard_prefixes.includes(guard_name)) 
+  {
+    //common across all guards
+    document.getElementById(guard_name + "On").disabled = false;
+    document.getElementById(guard_name + "Off1day").disabled = true;
+    document.getElementById(guard_name + "Off2days").disabled = true;
+    document.getElementById(guard_name + "Off3days").disabled = true;
+    document.getElementById(guard_name + "Off7days").disabled = true;
+    document.getElementById(guard_name + "OffIndef").disabled = true;
+    document.getElementById(guard_name + "Status").innerHTML = off_until_message;
+    document.getElementById(guard_name + "ThreshValue").style.color = 'gray';
+    document.getElementById(guard_name + "ThreshValue").style.fontStyle = 'italic';
+
+	if(all_guards_w_single_thresh.includes(guard_name))
+	{
+      document.getElementById(guard_name + "SetThreshButton").disabled = true;
+      document.getElementById(guard_name + "SetThreshInput").disabled = true;  
+      document.getElementById(guard_name + "SetThreshInput").value = '';
+	}
+  
+	if(all_guards_w_shelf.includes(guard_name))
+	{
+	  document.getElementById(guard_name + "SetShelfButton").disabled = true;
+      document.getElementById(guard_name + "SetShelfInput").disabled = true;  
+      document.getElementById(guard_name + "SetShelfInput").value = ''; 
+      document.getElementById(guard_name + "ShelfValue").style.color = 'gray';
+      document.getElementById(guard_name + "ShelfValue").style.fontStyle = 'italic';  
+	}
+	
+	if(guard_name == 'moistureGuard')
+	{
+	  EnableDisableSetItems(vineyard_stations,"_newSMSThresh", 
+	    DISABLE, RESET_VALUE);
+      EnableDisableSetItems(vineyard_stations,"_changeSMSThresh", 
+	    DISABLE, DO_NOT_RESET_VALUE); 
+	}
+  }
+  else
+  {
+    SendMessage(CONSOLE, "TurnGuardGUIOff() called with invalid guard name.");
+  }
+}
+
+// Store "on" or "off" or "<epoch time stamp>" in DynamoDB  
+function TurnGuardOn(guard_name, guard_db_name)
+{
+  guard_name = guard_name.trim();
+  guard_db_name = guard_db_name.trim();
+  
+  UpdateAControlValue("1", guard_db_name, "on");
+  TurnGuardGUIOn(guard_name);
+}
+
+// Store "on" or "off" or "<epoch time stamp>" in DynamoDB.  The timestamp is the date/time 
+// when the guard is scheduled to turn back on.  If param timestamp == '' then calculate this
+// epoch time stamp, otherwise work with preexisting epoch time stamp.
+function TurnGuardOff(days, timestamp, guard_name, guard_db_name)
+{
+  guard_name = guard_name.trim();
+  guard_db_name = guard_db_name.trim();
+  timestamp = timestamp.trim().toLowerCase();
+  
+  var human_readable = 'Off until ';
+ 
+  if(timestamp == '')
+  {
+    var expiry_num = 0;
+    var expiry_str = '';
+    var current_ts_num = (Math.trunc(Date.now() / 1000));
+
+    if(days < 8)
+    {
+      //there are 86400 seconds in a day
+      expiry_num = current_ts_num + days * 86400;
+	  expiry_str = expiry_num.toString();
+	  human_readable += TimeStampToHuman(expiry_str, LONG);
+    }
+    else
+    {
+	  human_readable = "Off indefinitely";
+	  expiry_str = "off";
+    }
+	UpdateAControlValue("1", guard_db_name, expiry_str);
+  }
+  else
+  {
+    if (timestamp == 'off')
+    {
+      human_readable = "Off indefinitely";
+    }
+    else
+    {
+      human_readable += TimeStampToHuman(timestamp, LONG);
+    }
+  }
+  TurnGuardGUIOff(guard_name, human_readable);
+}
+
+// given a number, return a 2 char string, left padded with '0' if needed
+function PadLeftZero(value)
+{
+  var return_string = "";
+  if(value < 10)
+  {
+    return_string = "0";
+  }
+  return_string += value.toString();
+  return(return_string);
+}
+
+//convert epoch time stamp to human readable string. e.g. 2020-12-31T23:59
+function TimeStampToHuman(timestamp, mode)
+{
+  var human_readable = "";
+
+  var reg_exp = new RegExp('^[0-9]+$');
+  if(reg_exp.test(timestamp))
+  {	
+	var date = new Date(timestamp * 1000); //need to supply milliseconds
+	var year = date.getFullYear();
+	human_readable = year.toString() + "-";
+	var month = date.getMonth() + 1;  //due to Jan == 0
+	human_readable += PadLeftZero(month)
+    if(mode == LONG)
+    {
+	  var day = date.getDate();
+	  human_readable += "-" + PadLeftZero(day) + "T";
+	  var hours = date.getHours();
+	  human_readable += PadLeftZero(hours) + ":";
+	  var minutes = date.getMinutes();
+	  human_readable += PadLeftZero(minutes);
+	}
+  }
+  else
+  {
+	SendMessage(CONSOLE, "Bad argument passed to TimeStampToHuman(). Contains non digits.");
+  }
+
+  return(human_readable);
+};
+
+//Load the latest values for all sensor stations, both online ('status' cell will be marked
+//green) and offline ('status' cell will be marked red).  For online stations, mark suspect
+//sensor values (i.e., values which may constitute an alarm state) yellow.  A yellow indicator 
+//is not definitive indication of an alarm state because data shelf life is not considered and 
+//the full soil moisture algorithm is not executed.
+//
+//NOTE: Breaking this function up (i.e., separate AWS calls) would introduce race condition issues 
+//stemming from asynchronous nature of the access to AWS resources.  Specifically, it is likely 
+//that variables holding control values retrieved from table_name1 would still be undefined 
+//at the time an attempt is made to color code cells based on current sensor readings.
+function LoadSensorReadingsAndPlantedDates()
+{
+  SendMessage(GUI, "Loading most recent readings for all sensors and planted dates...");
+   	
+  var docClient = new AWS.DynamoDB.DocumentClient();
+  var params = 
+  {
+    TableName: 'table_name1',
+    Key:
+	{
+      "control_id": '1'
+    }
+  }
+  
+  //get the sensor threshold values
+  docClient.get(params, function(err, data) 
+  {
+    if (err) 
+	{
+	  SendMessage(CONSOLE_AND_GUI, "Cannot read the DynamoDB table table_name1." +
+	                               " Try logging in again or launching a new browser.");
+	  SendMessage(CONSOLE, err);
+    } 
+	else 
+	{			
+	  var absence_thresh =  parseInt(data.Item.absence_thresh);
+	  var temp_thresh    =  parseFloat(data.Item.freeze_thresh);
+      var battery_thresh = parseFloat(data.Item.battery_thresh);
+	  var moist_thresh   = 99999999999;
+	  var current_ts     = Math.trunc(Date.now() / 1000);
+		
+	  for (var index = 0; index < vineyard_stations.length; index++)
+      {
+		if(parseInt(data.Item.moisture_thresh[vineyard_stations[index]]) < moist_thresh)
+		{
+		  moist_thresh = parseInt(data.Item.moisture_thresh[vineyard_stations[index]]);
+		}
+	  }
+		
+	  //get the most current sensor values; load value and color code cells
+	  var docClient = new AWS.DynamoDB.DocumentClient();
+      var params = 
+      {
+        TableName: 'table_name2'
+      };
+   
+      docClient.scan(params, function(err, data)
+      {
+        if(err) 
+        {
+          SendMessage(CONSOLE_AND_GUI, "Could not scan the DynamoDB table " +
+	        "table_name2. Try logging in again or launching a new browser.");
+	      SendMessage(CONSOLE, err);
+        } 
+        else 
+        {
+		  data.Items.forEach(function(statusRecord) 
+	      {
+		    document.getElementById(statusRecord.location + "_status").innerHTML = statusRecord.tstatus;
+	        if(statusRecord.tstatus == 'online')
+	        {
+	          document.getElementById(statusRecord.location + '_status_color').bgColor = "lightgreen";
+	        }
+			else
+		    {
+		      document.getElementById(statusRecord.location + '_status_color').bgColor = "salmon";  
+			}
+			
+	        document.getElementById(statusRecord.location + "_time").innerHTML = 
+	          TimeStampToHuman(statusRecord.tstamp, LONG);
+	        document.getElementById(statusRecord.location + "_time_color").bgColor = "white";
+		    if((statusRecord.tstatus == 'online') && 
+			   (current_ts - statusRecord.tstamp > (absence_thresh * 86,400))) //86,400 secs in a day
+	        {
+	          document.getElementById(statusRecord.location + "_time_color").bgColor = "lightyellow";
+	        }
+			  
+		    document.getElementById(statusRecord.location + "_temp").innerHTML = statusRecord.temperature;
+	        document.getElementById(statusRecord.location + "_temp_color").bgColor = "white";
+			if((statusRecord.tstatus == 'online') && (parseFloat(statusRecord.temperature) <= temp_thresh))
+	        {
+	          document.getElementById(statusRecord.location + "_temp_color").bgColor = "lightyellow";
+	        }
+			 
+		    document.getElementById(statusRecord.location + "_sms1").innerHTML = statusRecord.sms1;
+	        document.getElementById(statusRecord.location + "_sms1_color").bgColor = "white"; 
+		    if((statusRecord.tstatus == 'online') && (parseInt(statusRecord.sms1) >= moist_thresh))
+	        {
+	          document.getElementById(statusRecord.location + "_sms1_color").bgColor = "lightyellow";
+	        }
+			  
+		    document.getElementById(statusRecord.location + "_sms2").innerHTML = statusRecord.sms2;
+	        document.getElementById(statusRecord.location + "_sms2_color").bgColor = "white"; 
+		    if((statusRecord.tstatus == 'online') && (parseInt(statusRecord.sms2) >= moist_thresh))
+	        {
+	          document.getElementById(statusRecord.location + "_sms2_color").bgColor = "lightyellow";
+	        }
+			  
+			document.getElementById(statusRecord.location + "_sms3").innerHTML = statusRecord.sms3;
+	        document.getElementById(statusRecord.location + "_sms3_color").bgColor = "white"; 
+			if((statusRecord.tstatus == 'online') && (parseInt(statusRecord.sms3) >= moist_thresh))
+	        {
+	          document.getElementById(statusRecord.location + "_sms3_color").bgColor = "lightyellow";
+	        }
+			  
+		    document.getElementById(statusRecord.location + "_battery").innerHTML = statusRecord.battery;
+	        document.getElementById(statusRecord.location + "_battery_color").bgColor = "white"; 
+		    if((statusRecord.tstatus == 'online') && (parseFloat(statusRecord.battery) <= battery_thresh))
+	        {
+	          document.getElementById(statusRecord.location + "_battery_color").bgColor = "lightyellow";
+	        }
+				  
+		    //in the planted dates section of the GUI
+            document.getElementById(statusRecord.location + "_planted").innerHTML = 
+	          TimeStampToHuman(statusRecord.planted, SHORT);	
+		  });   
+		  SendMessage(GUI, "Finished loading most recent sensor status and planted dates.");
+        } 
+      });
+	}
+  });
+}
+
+
+// For a single sensor, update the value of a single attribute
+function UpdateStatusDataValue(location_id, attribute, new_value)
+{
+  SendMessage(GUI, "Updating a sensor station value setting...");
+  var docClient = new AWS.DynamoDB.DocumentClient();
+  var expression =  "set " + attribute + "= :t";
+  var params = 
+  {
+    TableName: 'table_name2',
+    Key:
+	{
+      "location": location_id
+    },
+    UpdateExpression: expression,
+	ExpressionAttributeValues:
+	{
+      ":t" : new_value
+    },
+    ReturnValues:"UPDATED_NEW"
+  };
+		
+  docClient.update(params, 
+    function(err, data) 
+	{
+      if (err) 
+	  {
+	    SendMessage(CONSOLE_AND_GUI, "Error occured during attempt to update " +
+		  "the DynamoDB table table_name2. Try logging in again or " +
+		  "launching a new browser."); 
+        SendMessage(CONSOLE, err);		  
+      } 
+	  else 
+	  {
+        SendMessage(GUI, "Finished updating a sensor station value setting.");
+      }
+    });
+}
+
+// For a single control value, update the value.  
+function UpdateAControlValue(record_id, attribute, new_value)
+{
+  SendMessage(GUI, "Updating a control setting...");
+  var docClient = new AWS.DynamoDB.DocumentClient();
+  var expression =  "set " + attribute + "= :t";
+  var params = 
+  {
+    TableName: 'table_name1',
+    Key:
+	{
+      "control_id": record_id
+    },
+    UpdateExpression: expression,
+	ExpressionAttributeValues:
+	{
+      ":t" : new_value
+    },
+    ReturnValues:"UPDATED_NEW"
+  };
+		
+  docClient.update(params, 
+    function(err, data) 
+	{
+      if (err) 
+	  {
+	  	SendMessage(CONSOLE_AND_GUI, "Error occured during attempt to update the " +
+          "DynamoDB table table_name1. Try logging in again or launching a " +
+          "new browser.");
+		SendMessage(CONSOLE, err);
+      } 
+	  else 
+	  {
+		SendMessage(GUI, "Finished updating a control setting.");
+      }
+    });
+}
+
+// For entire GUI, load all control settings (e.g., FreezeGuard "on")
+function LoadSensorControlValues()
+{
+  SendMessage(GUI, "Loading control settings...");
+  var docClient = new AWS.DynamoDB.DocumentClient();
+  var params = 
+  {
+    TableName: 'table_name1',
+    Key:
+	{
+      "control_id": '1'
+    }
+  }
+  
+  docClient.get(params, 
+    function(err, data) 
+	{
+      if (err) 
+	  {
+	  	SendMessage(CONSOLE_AND_GUI, "Cannot read the DynamoDB table table_name1." +
+		                              " Try logging in again or launching a new browser.");
+		SendMessage(CONSOLE, err);
+      } 
+	  else 
+	  {	
+	    document.getElementById("absenceGuardThreshValue").innerHTML = 
+		  data.Item.absence_thresh + " hours";
+	    document.getElementById("freezeGuardThreshValue").innerHTML = 
+		  data.Item.freeze_thresh + "&#176F";
+		document.getElementById("freezeGuardShelfValue").innerHTML = 
+		  data.Item.freeze_cutoff + " hours";
+	    document.getElementById("batteryGuardThreshValue").innerHTML = 
+		  data.Item.battery_thresh + " volts";
+		document.getElementById("batteryGuardShelfValue").innerHTML = 
+		  data.Item.battery_cutoff + " hours";
+		document.getElementById("moistureGuardShelfValue").innerHTML = 
+		  data.Item.moisture_cutoff + " days";
+	  
+	    var current_ts = Math.trunc(Date.now() / 1000);
+	  
+	    var absence_guard_value = data.Item.absence_guard.trim().toLowerCase();
+	    if(absence_guard_value == "on")
+	    {
+		  TurnGuardGUIOn("absenceGuard");
+		}
+		else if(absence_guard_value == "off")
+		{
+		  TurnGuardGUIOff("absenceGuard", "Off indefinitely");
+		}
+		else 
+		{
+		  if(parseInt(absence_guard_value) < current_ts)
+		  {
+			TurnGuardOn('absenceGuard', 'absence_guard');
+	      }
+	      else
+	      {
+			TurnGuardOff(0, absence_guard_value, 'absenceGuard', 'absence_guard');
+	      }
+		}
+	  
+	    var freeze_guard_value = data.Item.freeze_guard.trim().toLowerCase();
+	    if(freeze_guard_value == "on")
+	    {
+		  TurnGuardGUIOn("freezeGuard");
+		}
+		else if(freeze_guard_value == "off")
+		{
+		  TurnGuardGUIOff("freezeGuard", "Off indefinitely");
+		}
+		else 
+		{
+		  if(parseInt(freeze_guard_value) < current_ts)
+		  {
+			TurnGuardOn('freezeGuard', 'freeze_guard');
+	      }
+	      else
+	      {
+			TurnGuardOff(0, freeze_guard_value, 'freezeGuard', 'freeze_guard');
+	      }
+		}
+		
+	    var battery_guard_value = data.Item.battery_guard.trim().toLowerCase();
+	    if(battery_guard_value == "on")
+	    {
+		  TurnGuardGUIOn("batteryGuard");
+		}
+		else if(battery_guard_value == "off")
+		{
+		  TurnGuardGUIOff("batteryGuard", "Off indefinitely");
+		}
+		else 
+		{
+		  if(parseInt(battery_guard_value) < current_ts)
+		  {
+		  	TurnGuardOn('batteryGuard', 'battery_guard');
+	      }
+	      else
+	      {
+			TurnGuardOff(0, battery_guard_value, 'batteryGuard', 'battery_guard');
+	      }
+		}
+		
+		var moisture_guard_value = data.Item.moisture_guard.trim().toLowerCase();
+	    if(moisture_guard_value == "on")
+	    {
+		  TurnGuardOn('moistureGuard', 'moisture_guard');
+		  for (var index = 0; index < vineyard_stations.length; index++)
+          {
+            document.getElementById(vineyard_stations[index] + "_smsThresh").innerHTML = 
+		      data.Item.moisture_thresh[vineyard_stations[index]];
+          }
+		}
+		else if(moisture_guard_value == "off")
+		{
+		  TurnGuardGUIOff('moistureGuard', 'Off indefinitely');
+		}
+		else 
+		{
+		  if(parseInt(moisture_guard_value) < current_ts)
+		  {
+			TurnGuardOn('moistureGuard', 'moisture_guard');
+			for (var index = 0; index < vineyard_stations.length; index++)
+            {
+              document.getElementById(vineyard_stations[index] + "_smsThresh").innerHTML = 
+		        data.Item.moisture_thresh[vineyard_stations[index]];
+            }
+	      }
+	      else
+	      {
+		    TurnGuardOff(0, moisture_guard_value, 'moistureGuard', 'moisture_guard');
+	      }
+		}
+	    SendMessage(GUI, "Finished loading control settings.");
+      }
+    });
+}  
+
+/*
+  For future reference, for a different authorization scheme:
+  
+  By convention, in different authorization schemes you can pass a token or an id
+  along with the request using the 'Authorization' header.  API Gateway looks for
+  this specific header.  I have left (commented out) lines in the source code to
+  collect both the token value and the id value, where the Cognito User Pool logon 
+  occurs to make it an easier change in the future if you want a different scheme.
+  
+  Alos, you can pass additional, non modeled, parameters as so:
+  
+  var additionalParams = {headers: {param0: '',param1: ''},
+                          queryParams: {param0: '',param1: ''}};
+  apigClient.rootGet(params, {}, additionalParams).then(function(result){}).catch(function(result){});
+*/
+function CallBackendJob(job)
+{
+  SendMessage(GUI, 'Asynchronously invoking the ' + job + ' back end process...');
+
+  var apigClient = apigClientFactory.newClient(
+  {
+    accessKey: AWS.config.credentials.accessKeyId,
+    secretKey: AWS.config.credentials.secretAccessKey,
+    sessionToken: AWS.config.credentials.sessionToken,
+    region: THE_REGION 
+  });
+
+  //the query string parameters
+  var params = 
+  {
+  	'user' : userName,
+    'job' : job
+  };
+                          
+  //asynchronously call the API endpoint
+  apigClient.rootGet(params, {}, {}).then(function(result)
+  {
+    SendMessage(GUI, 'Successfully invoked the ' + job + ' back end process.');
+  }).catch(function(result)
+     {
+       SendMessage(GUI, 'Failed to invoke the ' + job + ' back end process.');
+     });
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Security data structures and functions
+/////////////////////////////////////////////////////////////////////////////////////////
+var THE_REGION = 'us-east-1';
+var USER_POOL_ID = 'us-east-1_123456789';
+var USER_POOL_APP_CLIENT_ID = '123456789012345678901234567';
+var IDENTITY_POOL_ID = 'us-east-1:12345678-1234-1234-1234-123456789012';
+//var accessToken;
+//var identityToken;
+var userName;
+
+// clear user input from log in attempt
+function ClearLogInValues()
+{
+  document.getElementById("password").value = '';
+  document.getElementById("username").value = '';
+}
+
+// attempt by user to log into web application succeeded
+function LogInSuccess(name)
+{
+  var greeting = "Howdy " + name + "! You have been successfully logged in.";
+  SendMessage(GUI, greeting);
+  ClearLogInValues();
+  document.getElementById("username").disabled = true; 
+  document.getElementById("password").disabled = true; 
+  document.getElementById("logonbutton").disabled = true;
+  
+  SendMessage(GUI, "Loading most recent sensor reading values and control values...");
+  
+  EnableDisableSetItems(vineyard_stations, "Toggle", ENABLE, DO_NOT_RESET_VALUE);
+  LoadSensorReadingsAndPlantedDates();
+  EnableDisableSetItems(all_button_groups, "Refresh", ENABLE, DO_NOT_RESET_VALUE);
+  EnableDisableSetItems(all_guard_prefixes, "RunNow", ENABLE, DO_NOT_RESET_VALUE);
+   
+  //loads all alarm control values and sets GUI in correct configuration
+  LoadSensorControlValues(); 
+ 
+  // enable GUI for "manage planted dates" section
+  EnableDisableSetItems(vineyard_stations, "_changeDate", ENABLE, DO_NOT_RESET_VALUE);
+  EnableDisableSetItems(vineyard_stations, "_newMonthInput", ENABLE, RESET_VALUE);
+  EnableDisableSetItems(vineyard_stations, "_newYearInput", ENABLE, RESET_VALUE);
+}
+
+// attempt by user to log into web application failed
+function LogInFailure()
+{
+  SendMessage(GUI, "Sorry partner! Please try to log in again.");
+  ClearLogInValues();
+}
+
+
+// process user's attempt to log into the web application  	  
+function LogInToApp()
+{
+  SendMessage(GUI, "Attempting to log you in...");
+  var authenticationData = 
+  {
+    Username : document.getElementById("username").value,
+    Password : document.getElementById("password").value
+  }; 
+  var authenticationDetails = 
+    new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
+  var poolData = 
+  { 
+	UserPoolId : USER_POOL_ID,
+	ClientId : USER_POOL_APP_CLIENT_ID
+  };
+  var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+  var userData = 
+  { 
+    Username : document.getElementById("username").value,
+    Pool : userPool
+  };
+  var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+  cognitoUser.authenticateUser(authenticationDetails, 
+  {
+    onSuccess: function (result) 
+	{
+	  //accessToken = result.getAccessToken().getJwtToken();
+	  //identityToken = result.getIdToken().getJwtToken();
+	  userName = userData.Username;
+	  AWS.config.region = THE_REGION;
+      AWS.config.credentials = new AWS.CognitoIdentityCredentials(
+	    {
+          IdentityPoolId : IDENTITY_POOL_ID,
+		  Logins : 
+		  { 	
+		    //'cognito-idp.' + <aws region> + '.amazonaws.com/' + <cognito user pool id>
+			'cognito-idp.us-east-1.amazonaws.com/us-east-1_123456789'  : 
+		    result.getIdToken().getJwtToken()
+          }
+        }
+	  );
+
+      AWS.config.credentials.refresh((error) => 
+	    {
+          if (error) 
+		  {
+		    SendMessage(CONSOLE, "Error: credentials refresh failed.");
+		    SendMessage(CONSOLE, error);
+		    LogInFailure();
+          } 
+		  else 
+		  {
+		    SendMessage(CONSOLE, 'Successfully logon and credential refresh.');
+		    LogInSuccess(userName);
+			//now JavaScript functions can access AWS resources
+		    AWS.config.update(
+			  {
+		        accessKeyId: AWS.config.credentials.accessKeyId, 
+			    secretAccessKey: AWS.config.credentials.secretAccessKey,
+			    sessionToken: AWS.config.credentials.sessionToken
+		      }
+		    );
+          }
+        }
+	  );
+    },
+
+    onFailure: function(err) 
+	{
+	  SendMessage(CONSOLE, "Failure to log user into application.");
+	  SendMessage(CONSOLE, err);
+	  LogInFailure();
+    },
+    
+    // MFA not used with this application
+	mfaRequired: function(codeDeliveryDetails) 
+	{
+      var verificationCode = prompt('Please input verification code' ,'');
+      cognitoUser.sendMFACode(verificationCode, this);
+    },
+	
+	newPasswordRequired: function(userAttributes, requiredAttributes) 
+	{
+	  var newPassword = prompt("Please enter a new password. You must use an upper, " +
+                               "lower, number, and a special; min 8 chars.", "");
+	  if (newPassword == null || newPassword == "" || newPassword.length < 8)
+      {
+	    SendMessage(CONSOLE, "New password malformed.  Password reset failed.");
+		LogInFailure();
+	  }
+	  else
+	  {
+	    document.getElementById("password").setAttribute('value',newPassword);
+	    cognitoUser.completeNewPasswordChallenge(newPassword, null, this);
+	    LogInSuccess(userData.Username);
+		SendMessage(CONSOLE, "Password reset succeeded.");
+      }
+	}
+  });
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Vineyard Stations Status Functions
+/////////////////////////////////////////////////////////////////////////////////////////
+function HookUpVineyardStationButtons()
+{    
+  document.getElementById("vineyardStationsRefresh").onclick = function()
+    { LoadSensorReadingsAndPlantedDates(); } 
+
+  document.getElementById("A02NToggle").onclick = function()
+    { ToggleVineyardStation("A02N", document.getElementById("A02N_status").textContent); }  
+  document.getElementById("A02SToggle").onclick = function()
+    { ToggleVineyardStation("A02S", document.getElementById("A02S_status").textContent); }
+  document.getElementById("A08MToggle").onclick = function()
+    { ToggleVineyardStation("A08M", document.getElementById("A08M_status").textContent); }
+  
+  document.getElementById("B02NToggle").onclick = function()
+    { ToggleVineyardStation("B02N", document.getElementById("B02N_status").textContent); }  
+  document.getElementById("B02SToggle").onclick = function()
+    { ToggleVineyardStation("B02S", document.getElementById("B02S_status").textContent); } 
+  document.getElementById("B08MToggle").onclick = function()
+    { ToggleVineyardStation("B08M", document.getElementById("B08M_status").textContent); }
+  
+  document.getElementById("C02NToggle").onclick = function()
+    { ToggleVineyardStation("C02N", document.getElementById("C02N_status").textContent); } 
+  document.getElementById("C02SToggle").onclick = function()
+    { ToggleVineyardStation("C02S", document.getElementById("C02S_status").textContent); } 
+  document.getElementById("C08MToggle").onclick = function()
+    { ToggleVineyardStation("C08M", document.getElementById("C08M_status").textContent); } 	
+  
+  document.getElementById("D02NToggle").onclick = function()
+    { ToggleVineyardStation("D02N", document.getElementById("D02N_status").textContent); }  
+  document.getElementById("D02SToggle").onclick = function()
+    { ToggleVineyardStation("D02S", document.getElementById("D02S_status").textContent); } 
+  document.getElementById("D08MToggle").onclick = function()
+    { ToggleVineyardStation("D08M", document.getElementById("D08M_status").textContent); }
+  
+  document.getElementById("E02NToggle").onclick = function()
+    { ToggleVineyardStation("E02N", document.getElementById("E02N_status").textContent); }  
+  document.getElementById("E02SToggle").onclick = function()
+    { ToggleVineyardStation("E02S", document.getElementById("E02S_status").textContent); } 
+  document.getElementById("E08MToggle").onclick = function()
+    { ToggleVineyardStation("E08M", document.getElementById("E08M_status").textContent); }
+  
+  document.getElementById("F02NToggle").onclick = function()
+    { ToggleVineyardStation("F02N", document.getElementById("F02N_status").textContent); } 
+  document.getElementById("F02SToggle").onclick = function()
+    { ToggleVineyardStation("F02S", document.getElementById("F02S_status").textContent); }
+  document.getElementById("F08MToggle").onclick = function()
+    { ToggleVineyardStation("F08M", document.getElementById("F08M_status").textContent); } 	
+  
+  document.getElementById("G02NToggle").onclick = function()
+    { ToggleVineyardStation("G02N", document.getElementById("G02N_status").textContent); }  
+  document.getElementById("G02SToggle").onclick = function()
+    { ToggleVineyardStation("G02S", document.getElementById("G02S_status").textContent); }
+  document.getElementById("G08MToggle").onclick = function()
+    { ToggleVineyardStation("G08M", document.getElementById("G08M_status").textContent); }
+}
+
+function ToggleVineyardStation(station, current_status)
+{
+  var new_status = "online";
+  if(current_status.toLowerCase() == "online")
+  {
+    new_status = "offline";
+  }
+  
+  UpdateStatusDataValue(station, "tstatus", new_status);
+  document.getElementById(station + "_status").innerHTML = new_status;
+  
+  //reload table to update color of status cell and turn on/off yellow because
+  //yellow cells, potential alarm state, are only possible for online stations
+  LoadSensorReadingsAndPlantedDates();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Absence Guard functions
+/////////////////////////////////////////////////////////////////////////////////////////
+function HookUpAbsenceGuardButtons()
+{
+  document.getElementById("absenceGuardRefresh").onclick = function()
+    { LoadSensorReadingsAndPlantedDates(); }    
+  document.getElementById("absenceGuardRunNow").onclick = function()
+    { CallBackendJob("absence_guard"); }
+  document.getElementById("absenceGuardOn").onclick = function()
+    { TurnGuardOn('absenceGuard', 'absence_guard'); }  
+  document.getElementById("absenceGuardOff1day").onclick = function()
+    { TurnGuardOff(1,'','absenceGuard', 'absence_guard'); }    
+  document.getElementById("absenceGuardOff2days").onclick = function()
+    { TurnGuardOff(2,'','absenceGuard', 'absence_guard'); }  
+  document.getElementById("absenceGuardOff3days").onclick = function()
+    { TurnGuardOff(3,'','absenceGuard', 'absence_guard'); }  
+  document.getElementById("absenceGuardOff7days").onclick = function()
+    { TurnGuardOff(7,'','absenceGuard', 'absence_guard'); }
+  document.getElementById("absenceGuardOffIndef").onclick = function()
+    { TurnGuardOff(999,'','absenceGuard', 'absence_guard'); }    
+  document.getElementById("absenceGuardSetThreshButton").onclick = function()
+    { SetAbsenceGuardHours(document.getElementById("absenceGuardSetThreshInput").value); }
+}
+
+function SetAbsenceGuardHours(hours)
+{
+  hours = hours.trim();
+  var reg_exp = new RegExp('^[0-9]+$');
+  if(reg_exp.test(hours))
+  {
+    if((parseInt(hours) < 2) || (parseInt(hours) > 49))
+    {
+      alert("Input a number between 2 and 48.");
+    }
+    else
+    {	
+	  UpdateAControlValue("1", "absence_thresh", hours);
+      document.getElementById("absenceGuardThreshValue").innerHTML = hours + " hours";
+    }	  
+  }
+  else
+  {
+    alert("Input digits only (i.e., 0-9) only.");
+  }
+  document.getElementById("absenceGuardSetThreshInput").value = '';  
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Battery Guard functions
+/////////////////////////////////////////////////////////////////////////////////////////
+function HookUpBatteryGuardButtons()
+{	
+  document.getElementById("batteryGuardRefresh").onclick = function()
+    { LoadSensorReadingsAndPlantedDates(); }    
+  document.getElementById("batteryGuardRunNow").onclick = function()
+    { CallBackendJob("battery_guard"); } 
+  document.getElementById("batteryGuardOn").onclick = function()
+    { TurnGuardOn('batteryGuard', 'battery_guard'); }  
+  document.getElementById("batteryGuardOff1day").onclick = function()
+    { TurnGuardOff(1,'','batteryGuard', 'battery_guard'); }    
+  document.getElementById("batteryGuardOff2days").onclick = function()
+    { TurnGuardOff(2,'','batteryGuard', 'battery_guard'); }  
+  document.getElementById("batteryGuardOff3days").onclick = function()
+    { TurnGuardOff(3,'','batteryGuard', 'battery_guard'); }  
+  document.getElementById("batteryGuardOff7days").onclick = function()
+    { TurnGuardOff(7,'','batteryGuard', 'battery_guard'); }
+  document.getElementById("batteryGuardOffIndef").onclick = function()
+    { TurnGuardOff(999,'','batteryGuard', 'battery_guard'); }    
+  document.getElementById("batteryGuardSetThreshButton").onclick = function()
+    { SetBatteryGuardVolts(document.getElementById("batteryGuardSetThreshInput").value); }
+  document.getElementById("batteryGuardSetShelfButton").onclick = function()
+    { SetBatteryGuardShelfLife(document.getElementById("batteryGuardSetShelfInput").value); }
+}
+
+function SetBatteryGuardVolts(volts)
+{
+  volts = volts.trim();
+  var reg_exp = new RegExp('^[0-9](\.\d{1,2})?');
+  if(reg_exp.test(volts))
+  {
+	var volts_float = parseFloat(volts);
+    if((volts_float < 3.5 ) || (volts > 4))
+    {
+      alert("Input a number between 3.5 and 4.0");
+    }
+    else
+    {	
+	  UpdateAControlValue("1", "battery_thresh", volts);
+      document.getElementById("batteryGuardThreshValue").innerHTML = volts + " volts";
+    }	  
+  }
+  else
+  {
+    alert("Enter a single digit and optional decimal followed by up to " +
+          " two digits (e.g., 3.99)");
+  }
+  document.getElementById("batteryGuardSetThreshInput").value = '';
+}
+
+function SetBatteryGuardShelfLife(duration)
+{
+  duration = duration.trim();
+  var reg_exp = new RegExp('^[0-9]+$');
+  if(reg_exp.test(duration))
+  {
+    if((parseInt(duration) < 1) || (parseInt(duration) > 12))
+    {
+      alert("Input a number between 1 and 12.");
+    }
+    else
+    {	
+	  UpdateAControlValue("1", "battery_cutoff", duration);
+      document.getElementById("batteryGuardShelfValue").innerHTML = duration + " hours";
+    }	  
+  }
+  else
+  {
+    alert("Input digits (i.e., 0-9) only.");
+  }
+  document.getElementById("batteryGuardSetShelfInput").value = '';  
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Freeze Guard functions
+/////////////////////////////////////////////////////////////////////////////////////////
+function HookUpFreezeGuardButtons()
+{
+  document.getElementById("freezeGuardRefresh").onclick = function()
+    { LoadSensorReadingsAndPlantedDates(); }    
+  document.getElementById("freezeGuardRunNow").onclick = function()
+    { CallBackendJob("freeze_guard"); } 
+  document.getElementById("freezeGuardOn").onclick = function()
+    { TurnGuardOn('freezeGuard', 'freeze_guard'); }  
+  document.getElementById("freezeGuardOff1day").onclick = function()
+    { TurnGuardOff(1,'','freezeGuard', 'freeze_guard'); }    
+  document.getElementById("freezeGuardOff2days").onclick = function()
+    { TurnGuardOff(2,'','freezeGuard', 'freeze_guard'); }  
+  document.getElementById("freezeGuardOff3days").onclick = function()
+    { TurnGuardOff(3,'','freezeGuard', 'freeze_guard'); }  
+  document.getElementById("freezeGuardOff7days").onclick = function()
+    { TurnGuardOff(7,'','freezeGuard', 'freeze_guard'); }
+  document.getElementById("freezeGuardOffIndef").onclick = function()
+    { TurnGuardOff(999,'','freezeGuard', 'freeze_guard'); }    
+  document.getElementById("freezeGuardSetThreshButton").onclick = function()
+    { SetFreezeGuardTemp(document.getElementById("freezeGuardSetThreshInput").value); }
+  document.getElementById("freezeGuardSetShelfButton").onclick = function()
+    { SetFreezeGuardShelfLife(document.getElementById("freezeGuardSetShelfInput").value); }
+}
+
+function SetFreezeGuardTemp(temp)
+{
+  temp = temp.trim();
+  var reg_exp = new RegExp('^[0-9]+$');
+  if(reg_exp.test(temp))
+  {
+    if((parseInt(temp) < 28) || (parseInt(temp) > 45))
+    {
+      alert("Input a number between 28 and 45.");
+    }
+    else
+    {	
+	  UpdateAControlValue("1", "freeze_thresh", temp);
+	  document.getElementById("freezeGuardThreshValue").innerHTML = temp + "&#176F";
+    }	  
+  }
+  else
+  {
+	alert("Input digits (i.e., 0-9) only."); 
+  }
+  document.getElementById("freezeGuardSetThreshInput").value = '';   
+}
+
+function SetFreezeGuardShelfLife(duration)
+{
+  duration = duration.trim();
+  var reg_exp = new RegExp('^[0-9]+$');
+  if(reg_exp.test(duration))
+  {
+    if((parseInt(duration) < 1) || (parseInt(duration) > 4))
+    {
+      alert("Input a number between 1 and 4.");
+    }
+    else
+    {	
+	  UpdateAControlValue("1", "freeze_cutoff", duration);
+      document.getElementById("freezeGuardShelfValue").innerHTML = duration + " hours";
+    }	  
+  }
+  else
+  {
+    alert("Input digits (i.e., 0-9) only.");
+  }
+  document.getElementById("freezeGuardSetShelfInput").value = '';
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Moisture Guard functions
+/////////////////////////////////////////////////////////////////////////////////////////
+function HookUpMoistGuardButtons()
+{
+  document.getElementById("moistureGuardRefresh").onclick = function()
+    { LoadSensorReadingsAndPlantedDates(); }  
+	
+  document.getElementById("moistureGuardRunNow").onclick = function()
+    { CallBackendJob("moisture_guard"); }
+  
+  document.getElementById("moistureGuardOn").onclick = function()
+    { TurnGuardOn('moistureGuard', 'moisture_guard'); }  
+  document.getElementById("moistureGuardOff1day").onclick = function()
+    { TurnGuardOff(1,'','moistureGuard', 'moisture_guard'); }    
+  document.getElementById("moistureGuardOff2days").onclick = function()
+    { TurnGuardOff(2,'','moistureGuard', 'moisture_guard'); }  
+  document.getElementById("moistureGuardOff3days").onclick = function()
+    { TurnGuardOff(3,'','moistureGuard', 'moisture_guard'); }  
+  document.getElementById("moistureGuardOff7days").onclick = function()
+    { TurnGuardOff(7,'','moistureGuard', 'moisture_guard'); }
+  document.getElementById("moistureGuardOffIndef").onclick = function()
+    { TurnGuardOff(999,'','moistureGuard', 'moisture_guard'); }  
+	
+  document.getElementById("A02N_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("A02N", document.getElementById("A02N_newSMSThresh").value); }
+  document.getElementById("A02S_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("A02S", document.getElementById("A02S_newSMSThresh").value); }
+  document.getElementById("A08M_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("A08M", document.getElementById("A08M_newSMSThresh").value); }  						
+  document.getElementById("B02N_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("B02N", document.getElementById("B02N_newSMSThresh").value); }
+  document.getElementById("B02S_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("B02S", document.getElementById("B02S_newSMSThresh").value); }
+  document.getElementById("B08M_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("B08M", document.getElementById("B08M_newSMSThresh").value); }
+  document.getElementById("C02N_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("C02N", document.getElementById("C02N_newSMSThresh").value); }
+  document.getElementById("C02S_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("C02S", document.getElementById("C02S_newSMSThresh").value); }
+  document.getElementById("C08M_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("C08M", document.getElementById("C08M_newSMSThresh").value); }
+  document.getElementById("D02N_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("D02N", document.getElementById("D02N_newSMSThresh").value); }
+  document.getElementById("D02S_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("D02S", document.getElementById("D02S_newSMSThresh").value); }
+  document.getElementById("D08M_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("D08M", document.getElementById("D08M_newSMSThresh").value); }
+  document.getElementById("E02N_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("E02N", document.getElementById("E02N_newSMSThresh").value); }
+  document.getElementById("E02S_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("E02S", document.getElementById("E02S_newSMSThresh").value); }
+  document.getElementById("E08M_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("E08M", document.getElementById("E08M_newSMSThresh").value); }
+  document.getElementById("F02N_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("F02N", document.getElementById("F02N_newSMSThresh").value); }
+  document.getElementById("F02S_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("F02S", document.getElementById("F02S_newSMSThresh").value); }
+  document.getElementById("F08M_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("F08M", document.getElementById("F08M_newSMSThresh").value); }
+  document.getElementById("G02N_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("G02N", document.getElementById("G02N_newSMSThresh").value); }
+  document.getElementById("G02S_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("G02S", document.getElementById("G02S_newSMSThresh").value); }
+  document.getElementById("G08M_changeSMSThresh").onclick = function()
+    { ChangeMoistureThresh("G08M", document.getElementById("G08M_newSMSThresh").value); }
+		
+  document.getElementById("moistureGuardSetShelfButton").onclick = function()
+    { SetMoistureGuardShelfLife(document.getElementById("moistureGuardSetShelfInput").value); }
+}
+  
+// update a moisture threshold value for a single sensor station
+function ChangeMoistureThresh(station, value)
+{
+  value = value.trim();
+  station = station.trim().toUpperCase();  //set by JavaScript code, not user
+  var reg_exp = new RegExp('^[0-9]+$');  //digits only
+  if(reg_exp.test(value))
+  {
+    if((parseInt(value) > 999) && (parseInt(value) < 10001))
+	{
+	  SendMessage(GUI, "Updating a moisture threshold value...");
+	  var docClient = new AWS.DynamoDB.DocumentClient();
+	  
+      var expression = "set moisture_thresh.#station_id = :m";	
+	  params =  
+      {
+        TableName: "table_name1",
+        Key:
+	    {
+          "control_id": "1"
+        },
+        UpdateExpression: expression,
+        ExpressionAttributeNames:
+	    {
+		  "#station_id" : station
+	    },
+	    ExpressionAttributeValues:
+	    {
+          ":m" : value
+        },
+        ReturnValues:"UPDATED_NEW"
+      };
+	  
+	  docClient.update(params, 
+        function(err, data) 
+	    {
+          if (err) 
+	      {
+		  table_name1
+		    SendMessage(CONSOLE, "Error connecting to and/or updating DynamoDB " +
+                                 "table table_name1");
+		    SendMessage(CONSOLE, err);
+	        SendMessage(GUI, "Error occured updating moisture threshold value. " +
+                             "Try logging in again or launching a new browser.");
+          } 
+	      else 
+	      {
+		    SendMessage(GUI, "Finished updating a moisture_threshold value.");
+		    document.getElementById(station + "_smsThresh").innerHTML = value;
+          }
+        }); 
+	  }
+	  else
+	  {
+	    alert("Enter a number between 1,000 and 10,000 for soil moisture threshold.");  
+	  }
+  }
+  else
+  {
+    alert("Use valid digits to designate new soil moisture threshold value.");
+  }
+
+  EnableDisableSetItems(vineyard_stations,"_newSMSThresh", NO_CHANGE, RESET_VALUE);
+}
+
+function SetMoistureGuardShelfLife(duration)
+{
+  duration = duration.trim();
+  var reg_exp = new RegExp('^[0-9]+$');
+  if(reg_exp.test(duration))
+  {
+    if((parseInt(duration) < 1) || (parseInt(duration) > 4))
+    {
+      alert("Input a number between 1 and 4.");
+    }
+    else
+    {	
+	  UpdateAControlValue("1", "moisture_cutoff", duration);
+      document.getElementById("moistureGuardShelfValue").innerHTML = duration + " days";
+    }	  
+  }
+  else
+  {
+    alert("Input digits (i.e., 0-9) only.");
+  }
+  document.getElementById("moistureGuardSetShelfInput").value = '';
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Planted Dates functions
+/////////////////////////////////////////////////////////////////////////////////////////
+function HookUpPlantedDatesButtons()
+{
+  document.getElementById("plantedDatesRefresh").onclick = function()
+    { LoadSensorReadingsAndPlantedDates(); }  
+	
+  document.getElementById("A02N_changeDate").onclick = function()
+    { ChangePlantedDate("A02N", document.getElementById("A02N_newYearInput").value,
+	                    document.getElementById("A02N_newMonthInput").value); }
+  document.getElementById("A02S_changeDate").onclick = function()
+    { ChangePlantedDate("A02S", document.getElementById("A02S_newYearInput").value,
+	                    document.getElementById("A02S_newMonthInput").value); }
+  document.getElementById("A08M_changeDate").onclick = function()
+    { ChangePlantedDate("A08M", document.getElementById("A08M_newYearInput").value,
+	                    document.getElementById("A08M_newMonthInput").value); }  						
+  document.getElementById("B02N_changeDate").onclick = function()
+    { ChangePlantedDate("B02N", document.getElementById("B02N_newYearInput").value,
+	                    document.getElementById("B02N_newMonthInput").value); }
+  document.getElementById("B02S_changeDate").onclick = function()
+    { ChangePlantedDate("B02S", document.getElementById("B02S_newYearInput").value,
+	                    document.getElementById("B02S_newMonthInput").value); }
+  document.getElementById("B08M_changeDate").onclick = function()
+    { ChangePlantedDate("B08M", document.getElementById("B08M_newYearInput").value,
+	                    document.getElementById("B08M_newMonthInput").value); }
+  document.getElementById("C02N_changeDate").onclick = function()
+    { ChangePlantedDate("C02N", document.getElementById("C02N_newYearInput").value,
+	                    document.getElementById("C02N_newMonthInput").value); }
+  document.getElementById("C02S_changeDate").onclick = function()
+    { ChangePlantedDate("C02S", document.getElementById("C02S_newYearInput").value,
+	                    document.getElementById("C02S_newMonthInput").value); }
+  document.getElementById("C08M_changeDate").onclick = function()
+    { ChangePlantedDate("C08M", document.getElementById("C08M_newYearInput").value,
+	                    document.getElementById("C08M_newMonthInput").value); }
+  document.getElementById("D02N_changeDate").onclick = function()
+    { ChangePlantedDate("D02N", document.getElementById("D02N_newYearInput").value,
+	                    document.getElementById("D02N_newMonthInput").value); }
+  document.getElementById("D02S_changeDate").onclick = function()
+    { ChangePlantedDate("D02S", document.getElementById("D02S_newYearInput").value,
+	                    document.getElementById("D02S_newMonthInput").value); }
+  document.getElementById("D08M_changeDate").onclick = function()
+    { ChangePlantedDate("D08M", document.getElementById("D08M_newYearInput").value,
+	                    document.getElementById("D08M_newMonthInput").value); }
+  document.getElementById("E02N_changeDate").onclick = function()
+    { ChangePlantedDate("E02N", document.getElementById("E02N_newYearInput").value,
+	                    document.getElementById("E02N_newMonthInput").value); }
+  document.getElementById("E02S_changeDate").onclick = function()
+    { ChangePlantedDate("E02S", document.getElementById("E02S_newYearInput").value,
+	                    document.getElementById("E02S_newMonthInput").value); }
+  document.getElementById("E08M_changeDate").onclick = function()
+    { ChangePlantedDate("E08M", document.getElementById("E08M_newYearInput").value,
+	                    document.getElementById("E08M_newMonthInput").value); }
+  document.getElementById("F02N_changeDate").onclick = function()
+    { ChangePlantedDate("F02N", document.getElementById("F02N_newYearInput").value,
+	                    document.getElementById("F02N_newMonthInput").value); }
+  document.getElementById("F02S_changeDate").onclick = function()
+    { ChangePlantedDate("F02S", document.getElementById("F02S_newYearInput").value,
+	                    document.getElementById("F02S_newMonthInput").value); }
+  document.getElementById("F08M_changeDate").onclick = function()
+    { ChangePlantedDate("F08M", document.getElementById("F08M_newYearInput").value,
+	                    document.getElementById("F08M_newMonthInput").value); }
+  document.getElementById("G02N_changeDate").onclick = function()
+    { ChangePlantedDate("G02N", document.getElementById("G02N_newYearInput").value,
+	                    document.getElementById("G02N_newMonthInput").value); }
+  document.getElementById("G02S_changeDate").onclick = function()
+    { ChangePlantedDate("G02S", document.getElementById("G02S_newYearInput").value,
+	                    document.getElementById("G02S_newMonthInput").value); }
+  document.getElementById("G08M_changeDate").onclick = function()
+    { ChangePlantedDate("G08M", document.getElementById("G08M_newYearInput").value,
+	                    document.getElementById("G08M_newMonthInput").value); }
+}
+
+// NOTE: the earliest vine planted at Lonesome Vine Vineyard was 4/2018
+function ChangePlantedDate(station, year, month)
+{   
+  station = station.toUpperCase().trim();
+  year_str = year.trim();
+  month_str = month.trim();
+  var reg_exp = new RegExp('^[0-9]+$');  //digits only
+  if((reg_exp.test(year_str)) && (reg_exp.test(month_str)))
+  {
+    var year_int = parseInt(year_str);
+	var month_int = parseInt(month_str);
+	var current_ts_num = Math.trunc(Date.now() / 1000);
+	  
+	//create a time stamp for hour 1, minute 1, and day 1 for a given year and month
+	var dateString = "01-" + PadLeftZero(parseInt(month_str,10)) + "-" + year_str + " 1:01";
+	var dateTimeParts = dateString.split(' ');
+    var timeParts = dateTimeParts[1].split(':');
+    var dateParts = dateTimeParts[0].split('-');
+	var new_date =  new Date(dateParts[2], parseInt(dateParts[1], 10) - 1, 
+	                         dateParts[0], timeParts[0], timeParts[1]);
+	var new_date_ts_num = Math.trunc(new_date.getTime() / 1000);
+	  
+    if((year_int < 2018) || (month_int < 0) || (month_int > 13) ||
+	   ((year_int== 2018) && (month_int < 4)) ||
+	   (new_date_ts_num > current_ts_num))
+    {
+      alert("Input a date later than 2018-03, but not a future date.");
+    }
+    else
+    {	
+      UpdateStatusDataValue(station, "planted", new_date_ts_num.toString());
+	  document.getElementById(station + "_planted").innerHTML = 
+	  TimeStampToHuman(new_date_ts_num.toString(), SHORT);
+    }
+  }
+  else
+  {
+	alert("Use valid digits to designate a new year and month.");
+  }
+  EnableDisableSetItems(vineyard_stations,"_newMonthInput", NO_CHANGE, RESET_VALUE);
+  EnableDisableSetItems(vineyard_stations,"_newYearInput", NO_CHANGE, RESET_VALUE);
+}
+  
+/////////////////////////////////////////////////////////////////////////////////////////
+// The following script commands will be executed once: at page load time
+/////////////////////////////////////////////////////////////////////////////////////////
+
+// vineyard station status toggle buttons
+EnableDisableSetItems(vineyard_stations, "Toggle", DISABLE, DO_NOT_RESET_VALUE);
+
+// For all "Refresh Display" buttons and "Run Now" buttons
+EnableDisableSetItems(all_button_groups, "Refresh", DISABLE, DO_NOT_RESET_VALUE);
+EnableDisableSetItems(all_guard_prefixes, "RunNow", DISABLE, DO_NOT_RESET_VALUE);
+
+// All GUI for all Guards
+TurnGuardGUIOff("absenceGuard","");
+TurnGuardGUIOff("batteryGuard","");
+TurnGuardGUIOff("freezeGuard","");
+TurnGuardGUIOff("moistureGuard","");
+
+// For all individual soil moisture threshold inputs (across all sensor stations)
+EnableDisableSetItems(vineyard_stations,"_newSMSThresh", DISABLE, RESET_VALUE);
+EnableDisableSetItems(vineyard_stations,"_changeSMSThresh", DISABLE, DO_NOT_RESET_VALUE);
+
+// For all individual planted date inputs (across all sensor stations)
+EnableDisableSetItems(vineyard_stations,"_newYearInput", DISABLE, RESET_VALUE);
+EnableDisableSetItems(vineyard_stations,"_newMonthInput", DISABLE, RESET_VALUE);
+EnableDisableSetItems(vineyard_stations,"_changeDate", DISABLE, DO_NOT_RESET_VALUE);
+
+// For entire GUI, connect buttons to callback functions
+HookUpVineyardStationButtons();
+HookUpAbsenceGuardButtons();
+HookUpBatteryGuardButtons();
+HookUpFreezeGuardButtons();
+HookUpMoistGuardButtons();
+HookUpPlantedDatesButtons();
+   
+</script>
+
+</body>
+</html>
