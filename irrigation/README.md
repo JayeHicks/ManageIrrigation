@@ -128,7 +128,7 @@ The  complete set of Python 3+ scripts that support the solution's Irrigation Co
 
 High-level application architecture of the solution's Irrigation Control subsystem.
 
-![Image1](doco-images/irr-algorithm.jpg)
+![Image1](doco-images/irr-alg.jpg)
 
 For Irrigation Control, the PI 4 platform carries out two basic functions: turn irrigation valves on / off, report how much water was dispensed to a vineyard block. To achieve these functions, two Python 3+ scripts are deployed on to the PI4: an Oversight script and an Irrigation script.  The Oversight script is invoked on a regular basis by the PI 4's operating systems cron utility.  The Oversight script invokes the Irrigation script, as necessary, to oversee the irrigation of a specific vineyard block.  The Oversight script can stop the Irrigation script, if necessary, and is also responsible for communicating with the AWS backend.  The Irrigation script is responsible for not only opening irrigation valves but also tracking the amount of water flowing to a vineyard block.  By tracking water flow the irrigation script can detect under / over flow alarm states and calculate the total amount of water dispensed to a vineyard block.
 
@@ -188,7 +188,7 @@ The amount of water dispensed to a block during an irrigation event is tracked, 
   event_start: 8:00,
   event_dur: 4:00,
   time: 8:11
-  gal_disp: 1}},
+  gal_disp: 1}}
 } 
 ```
 
