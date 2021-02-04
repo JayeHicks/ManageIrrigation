@@ -1,3 +1,5 @@
+![Image1](doco-images/aws-backend.jpg)
+
 # Introduction
 The solution's backend was implemented on the AWS public cloud.  The backend includes long-term data storage, processing logic, application / data security, communications, and a collection of single page web applications that provide vineyard operators the ability to interact with the solution in a number of ways. Backend data storage occurs in multiple formats across multiple AWS services.  
 
@@ -26,9 +28,7 @@ Single page web applications, that provide vineyard operators the ability to int
    * Ad hoc data entry for plant ages, actions taken, and observations
 
 # Overall Architecture
-High-level, logical architecture diagram.
-
-![Image1](doco-images/aws-backend.jpg)
+The diagram above provides a high-level, logical architecture diagram.
 
 The backend, supporting all aspects of the solution, was constructed within a single AWS account.  Resources were provisioned in a single AWS region in relatively close proximity to the vineyard and winery.  All sensor data is ingested via IoT Core regardless of a sensor platform's inherent capacity to directly communicate with IoT Core.  Vineyard operators are free to use any modern Internet browser of their choice to view sensor data, view system logs, perform ad hoc data uploads, download historical sensor data, configure alarms, configure the irrigation algorithm, and configure fermentation monitoring.  
 
