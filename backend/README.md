@@ -1,5 +1,3 @@
-![Image1](doco-images/aws-backend.jpg)
-
 # Introduction
 The solution's backend was implemented on the AWS public cloud.  The backend includes long-term data storage, processing logic, application / data security, communications, and a collection of single page web applications that provide vineyard operators the ability to interact with the solution in a number of ways. Backend data storage occurs in multiple formats across multiple AWS services.  
 
@@ -28,7 +26,9 @@ Single page web applications, that provide vineyard operators the ability to int
    * Ad hoc data entry for plant ages, actions taken, and observations
 
 # Overall Architecture
-Refer to the diagram above for a high-level, logical architecture diagram.
+High-level, logical architecture diagram.
+
+![Image1](doco-images/aws-backend.jpg)
 
 The backend, supporting all aspects of the solution, was constructed within a single AWS account.  Resources were provisioned in a single AWS region in relatively close proximity to the vineyard and winery.  All sensor data is ingested via IoT Core regardless of a sensor platform's inherent capacity to directly communicate with IoT Core.  Vineyard operators are free to use any modern Internet browser of their choice to view sensor data, view system logs, perform ad hoc data uploads, download historical sensor data, configure alarms, configure the irrigation algorithm, and configure fermentation monitoring.  
 
@@ -674,14 +674,14 @@ I decided to create the custom, minimalistic system logging solution that is use
 Be aware that my custom system logging solution requires special consideration when run on the AWS Lambda service.  When run on AWS Lambda you must initialize the values of the two dictionary global variables that are used to house the individual system logs.  As the AWS Lambda service keeps the container for previously executed Lambda functions around for a short period of time, just in case the same Lambda function is called again, you need to clear out these global variables to avoid picking up data from a prior execution of the script.
 
 # Tips and Techniques
-##Python
+## Python
 * When I last developed a large, complex software solution and leveraged the built-in exception handling mechanism of the language that I built it in, I found the mechanism lacking.  The messages were more in-line with the implementation of the language's compiler rather than with a program written in the language and in need of debugging.   As such my first approach when I wrote the solution's Python 3+ scripts was to provide my own "omniscient / descriptive" messages in the exception handling logic.  It didn't take long for me to realize that the messages provided by Python 3+ exception handling are actually very good.  Further, my messages actually masked exceptions that I didn't expect because when you catch an exception and provide your own message you will not see the original message unless you concatenate it onto the end of your own message.
 
 ## AWS Build Out, Initial Set Up 
 * If you are setting up and working with an isolated AWS account, I suggest that you create billing alarms in CloudWatch for the expected monthly billing amount.  This can help you discover instances in which you fail to suitably manage provisioned resources. 
 
 ## AWS Services
-###Lambda Functions
+### Lambda Functions
 * The Lambda service leaves containers of previously executed functions up for a short period of time in hopes that the container can be reused for an upcoming execution of the same function.
   * This improves performance when the Lambda function is invoked more than once in a short period of time.
   * You must take this into account when designing your Lambda functions.  If you use global variables, you may need to initialize them in your Lambda function to clear out any residual value from a previous invocation of your Lambda function.
@@ -693,8 +693,17 @@ Be aware that my custom system logging solution requires special consideration w
 * If you are using AWS service-to-service integration to push ingested sensor data to AWS services, be aware that limitations exist.  For example, I defined an IoT Core Thing that ingests over 10 discreet values for a single shadow document update.  When I attempted to integrate IoT Core with CloudWatch (i.e., a custom metric for a dashboard) I received some sort of weird error message making reference to "goldeneye" (this was early 2020).  As I had already successfully used this service-to-service integration with a different shadow document with fewer than 10 discreet values, I decided to break the single service-to-service integration into two separate integrations, each fewer than 10 discreet values.  The approach worked.
 
 ### DynamoDB
-* In early 2020 I noticed the following strange behavior, but never got around time to investigating it.  I noticed that when inserting an item into a Table that has a TTL attribute, and specified TTL value is less than one hour in the future, the item prematurely disappears.  It shows up for a few minutes after insertion but then prematurely disappears.  Perhaps this is normal documented behavior, but seems odd to me – not an DynamoDB expert and have certainly not read all of the available DynamoDB documentation.
-* If you want to update a preexisting Item using an UpdateExpression you need to be aware of DynamoDB reserved words.  There are literally hundreds of them.  They include very common words, some of which are used by the average programmer to name variables (e.g., 'temp').  What was disconcerting for me was the coincidental occurrence of two things.  First, I successfully defined and used, for about a week, a table in which I unknowingly used a DynamoDB reserve word to name an Attribute(s).  Second, I successfully updated Attributes of existing Items; I had an example of my own working code.  However, when you try to update an existing Item and the attribute you want to update collides with a DynamoDB reserved word you get a strange, cryptic error message.  It didn't take me very long to figure it out and there are multiple, easy work arounds.  So this one is more amusing than annoying. 
+* In early 2020 I noticed the following strange behavior, but never got around time to investigating it.  
+  * I noticed that when inserting an item into a Table that has a TTL attribute, and specified TTL value is less than one hour in the future, the item prematurely disappears.  It shows up for a few minutes after insertion but then prematurely disappears.  
+  * Perhaps this is normal documented behavior, but seems odd to me.  I don't clailm to be a DynamoDB expert.  I certainly haven not read all of the available DynamoDB documentation.
+* If you want to update a preexisting Item using an UpdateExpression you need to be aware of DynamoDB reserved words.
+  * There are literally hundreds of them.  They include very common words, some of which are used by the average programmer to name variables (e.g., 'temp').  
+  * What slowed me down for a little over an hours worth of head scratching was the simultaneous occurence of two things.
+    * First, I successfully defined and used, for about a week, a table
+    * Second, I successfully updated Attributes of existing Items on this table
+	* The whammy moment was when I added code to update a different Attribute but the name of that Attribute was a DynamoDB reserve.  
+	* The error messages where a little cryptic but once you get an idea of what's going on its not big deal and there are multiple, easy ways to get around the reserve word issue in DynamoDB UpdateExpressions
+ 
 * During development and debugging pay close attention to the statements that you use to add data to a Table.  Most NoSQL databases, DynamoDB included, are flexible and will not catch/flag situations in which you mistype an Attribute name.  Instead, your flawed update/insert statement will execute and the net result will be that you introduce a brand new Attribute. 
 
 ### Cognito
@@ -722,11 +731,15 @@ Be aware that my custom system logging solution requires special consideration w
   * Some integrations are flexible and forgiving in that they allow you to alter them post creation.  Some are completely inflexible.  Having all of the necessary resources pre allocated and being able to supply  meaningful names can be a big help for integrations that are not so flexible.
 
 ## Single Page Web Applications
-* Using the API Gateway section of the AWS console, you can generate an SDK (Software Development Kit) to enable programmatic invocation of your AWS API Gateway endpoints.  If you do this, the AWS Console will generate 11 JavaScript files for you; 11 files for each of your API Gateway endpoints.  Of these 11 files, only one files (i.e., apigClient.js) is specific to a given API Gateway endpoint.  You can easily genericize this single file (e.g., accept parameters) so that it can support multiple API Gateway endpoints and obviously a single set of 10 files can be shared across all API Gateway endpoints.
+* Using the API Gateway section of the AWS console, you can generate an SDK (Software Development Kit) to enable programmatic invocation of your AWS API Gateway endpoints.  
+  * If you do this, the AWS Console will generate 11 JavaScript files for you; 11 files for each of your API Gateway endpoints.  Of these 11 files, only one files (i.e., apigClient.js) is specific to a given API Gateway endpoint.  
+  * You can easily genericize this single unique file (e.g., accept parameters) so that it can support multiple API Gateway endpoints and obviously a single set of 10 files can be shared across all API Gateway endpoints.
 * In order to invoke an AWS API Gateway endpoint securely you will need to supply the JavaScript file 'amazon-cognito-identity.min.js' to your program.  
   * In 2017, when I first had need of this SDK, I decided to source it from www.npmjs.com
   * In short, I installed npm on my local machine, downloaded the "AWS Cognito Identity SDK for JavaScript" bundle, and then located the file in my machine's local file system.
-* I manage the size of my JavaScript code by using naming standards for groupings of similar HTML elements.  This allows me to employ programmatic JavaScript iteration to dynamically set/change the values of groups of HTML elements.  While this is a sound technique it should not be taken to the point of creating cryptic, hard-to-maintain JavaScript. 
+* I'm a true beginner when it comes to HTML + JavaScript development.  In the off chance that another novice is reading this
+  * I manage the size of my JavaScript code by using naming standards for groupings of similar HTML elements.  This allows me to employ programmatic JavaScript iteration to dynamically set/change the values of groups of HTML elements.  
+  * While this is a sound technique it should not be taken to the point of creating cryptic, hard-to-maintain JavaScript. 
 * You can reduce your application support workload if you educate your end users.  A large number of issues can resolved by the end user if the follow these guidelines:
    * Only access the web application using a modern web browser.  Ensure that the browser is free of plugins, extensions, and all other end-user modifications
    * Have your end users segregate work browsers from personal browsers.  Only access the solution's web applications using a machine / browser combination in which the removal and reinstallation of the web browser poses no issue.  The removal and reinstallation of a personal use browser would certainly pose a problem for most.  In particular, it would remove cached values (e.g., convenient caching of your user id and password for sites that are visited on a regular basis) and would remove saved links unless they were saved to a local file and reimported after reinstallation.
@@ -739,11 +752,14 @@ Be aware that my custom system logging solution requires special consideration w
 * Similar to a bullet above regarding end users, developers will benefit (especially when debugging security issues) by using a modern, standard web browser, on a platform where the browser's cache can be flushed and the browser can be reinstalled if necessary. Mixing your personal user browser and you development browser can introduce pain if you need to flush cache and / or reinstall.
 
 ## Observations at 7+ months of 24x7 Operations
-* AWS services are, for the most part, solid.  However, I did notice a single unexplained blip in which a particular one of my AWS service-to-service integrations simply didn't work.  I had manual procedure that I used to recover the approximate 4 hours inbound raw sensor data.  
+* AWS services are, for the most part, solid.  However, I did notice a single unexplained blip in which a particular one of my AWS service-to-service integrations simply didn't work.  I had a manual procedure that I used to recover the approximate 4 hours of inbound raw sensor data.  
   * This was not a data issue as there was nothing unusual associated with the dropped data and it manually ingested just fine
   * This was not a configuration issue with the service-to-service integration as it had worked flawlessly for months before the 4 hour blip and have been working flawlessly since the blip
   * I reviewed the Personal Health Dashboard for the account that I used to develop / deploy the solution and found no mention of outages / disruptions with any services involved in the integration
-* Related to the 4 hour service integration outage noted above, I have seen 3 integration error objects show up in the special purpose S3 bucket set up to catch any run-time service-to-service integration errors across all of the solution's service-to-service integrations.  Considering the sheer volume of service-to-service integrations that run every single hour, this is a very low error rate and these three integration error blips did not result in the loss of any data.  Still, interesting to note.
+  * I'm not quite sure where I would dig into this issue to do a root cause analysis
+* In a similar vein but unrelated to the 4 hour service integration outage noted above, I have seen 3 integration error objects show up in the special purpose S3 bucket set up to catch any run-time service-to-service integration errors across all of the solution's service-to-service integrations.  
+  * Considering the sheer volume of service-to-service integrations that run every single hour, this is a very low error rate and these three integration error blips did not result in the loss of any data.  
+  * I think AWS service-to-service integrations are very powerful.  Definitely the way to go but they, like anything else in life, have their moments.  I've not had the spare time yet to forensically examine these S3 objects.
 * An SNS topic has been set up to send emails and SMS text messages to vineyard operators in the event that an alarm state is detected.  All vineyard operators are subscribed to the topic with both an email account and a smart device telephone number for text messages.  For detected alarm states
   * Emails are received 100% of the time by 100% of the vineyard operators
   * SMS text messages are received by most vineyard operators, most of the time
@@ -774,14 +790,14 @@ Be aware that my custom system logging solution requires special consideration w
    
   * Invest the time and effort necessary to conduct a single point of failure analysis.  
     * At the minimum you should inventory all of the major single points of failure and for each document the probability of failure, the expected loss of data, and the expected duration of system unavailability.  Beyond doubt, discussing your single point of failure analysis with your customer will inform your solution's architecture.  
-   * I never cease to be amazed when a client dismisses what I think is significant and fixates on what I think is a nonissue.  Sometimes we educate one another; somethings we retain our individual original positions.  
+    * I never cease to be amazed when a client dismisses what I think is significant and fixates on what I think is a nonissue.  Sometimes we educate one another; somethings we retain our individual, original positions.  
     * Over the years I've learned to not only have this conversation with the client but to document it and then inform the architecture with the direction captured by the final, review, approved document.
     * Attempting to retroactively address single points of failure in an existing solution can prove difficult and sometimes impossible
     * If you want to do more than the minimal amount of single point of failure analysis for your solution
-       * Identify all single points of failure
-       * Assess the risk posed by each (probability of occurring, impact if occurs)
-       * For all high probability, high impact, and combination high probability / high risk
-          * Develop risk mitigation strategy
-          * For each risk mitigation strategy
-              * Create a cost / benefit analysis 
-              * Analyze for single points of failure and risk
+      * Identify all single points of failure
+      * Assess the risk posed by each (probability of occurring, impact if occurs)
+      * For all high probability, high impact, and combination high probability / high risk
+        * Develop risk mitigation strategy
+        * For each risk mitigation strategy
+          * Create a cost / benefit analysis 
+          * Analyze for single points of failure and risk
