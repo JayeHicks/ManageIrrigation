@@ -29,7 +29,7 @@ Of direct interest to this solution, the Vinduino R3 possesses:
   * Solar panel leads
   * Soil moisture sensors leads (up to 4 sensors)
 
-I labeled teh marketing photo below of a Vinduino R3 Sensor Station straight out of the box.  To maximize the lifespan of each board, I soldered female IC sockets onto the boards so that they can accept the ESP8266-01 WiFi chip and the leads from the DS18B20 temperature sensor.  Note the prongs extending from the elevated mini board in the lower left-hand corner.  These prongs are used with a programming cable to flash firmware to the ATMega 328P.
+I labeled the marketing photo below of a Vinduino R3 Sensor Station straight out of the box.  To maximize the lifespan of each board, I soldered female IC sockets onto the boards so that they can accept the ESP8266-01 WiFi chip and the leads from the DS18B20 temperature sensor.  Note the prongs extending from the elevated mini board in the lower left-hand corner.  These prongs are used with a programming cable to flash firmware to the ATMega 328P.
 
 ![Image1](doco-images/vinduinoR3.jpg)
 
