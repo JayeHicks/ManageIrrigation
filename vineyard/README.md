@@ -9,11 +9,7 @@ For the daily collection of local, general weather conditions, the Smart Home Se
 
 Logical, high-level Smart Home Sensor Station sensor data ingestion path.
 
-![Image1](doco-images/alarm.jpg)
-
 ![Image1](doco-images/wf-vineyard-sensor-ingest.jpg)
-
-![Image1](doco-images/vineyard-station2.jpg)
 
 
 General weather conditions data is collected and stored, long term, for the purpose of future reference of historical weather conditions data.  This data is not collected to support alarm state detection nor presentation to vineyard operators via a single page web application.  The data is ingested daily and housed in a DynamoDB table.  At the beginning of each month the previous month's data is bundled together and archived into a CSV (comma separated value) formatted file that is placed into a special purpose S3 bucket.  Vineyard operators interact with this day by accessing archive files contained in the special purpose archival bucket. 
