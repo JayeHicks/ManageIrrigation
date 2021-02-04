@@ -101,7 +101,6 @@ General information and guidance for the Arduino IDE can be easily sourced at ww
 To flash firmware to a micro controller using the Arduino IDE, you write algorithms in a C / C++ like language, select the target micro controller, physically connect a programming cable from the computer running the Arduino IDE to the micro controller, and finally select an arrow icon in the Arduino IDE's title bar to flash the firmware you wrote onto the micro controller.  After you have successfully flashed firmware to a microcontroller, or power up a microcontroller that you have previously flashed, the firmware automatically begins executing.  Specifically, the function named setup() executes a single time and then the function named loop() is invoked infinitely. 
 
 The software for the solution's "at the vine" sensor station (i.e., Vinduino R3 Sensor Station) is firmware that you flash to a microcontroller.  It can be found the source-code/at-the-vine [subdirectory](https://github.com/JayeHicks/ManageIrrigation/tree/master/vineyard/source-code/at-the-vine).
-https://github.com/JayeHicks/ManageIrrigation/tree/master/vineyard/source-code/at-the-vine
 
 Helpful hints for reviewing the software for this portion of the solution.
 * Start your review with the file named CustomFirmware.ino as it contains the setup() and loop() functions
