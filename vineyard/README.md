@@ -34,6 +34,7 @@ The picture blow shows a Vinduino R3 Sensor Station straight out of the box.  To
 ![Image1](doco-images/vinduinoR3.jpg)
 
 The picture below shows the inventory of individual components required to assemble an "at the vine" sensor station: a mini solar panel, a 3.3V lithium ion battery, a Vinduino R3 Sensor Station, a DS18B20 waterproof temperature sensor, an ESP8266-01 WiFi chip, a set of three Watermark soil moisture sensors, and a hermetically-sealed, UV-resistant box. Note that the ESP8266-01 WiFi chip is not pictured below.  My client buried the three soil moisture sensors located at each specific vineyard location at the progressive depths of 12", 24", and 48".  
+
 ![Image1](doco-images/vineyard-station.jpg)
 
 The picture below shows an assembled "at the vine" sensor station that is being flashed with firmware prior to deployment.  The ESP8266-01 chip, missing in the previous picture, is located in the upper right-hand corner of this picture.  At a vineyard location, cabling from the three soil moisture sensors and the temperature sensor will be routed up through a hole drilled into the bottom of the box.  In addition, the miniature solar panel will be attached inside the box which is pole mounted at the optimal angle for receiving sunlight.    
@@ -69,6 +70,7 @@ The diagram below provides additional detail beyond the more abstract diagram la
 
 
 The diagram below provides a detailed trace of a single Vinduino R3 Sensor Station data record across all of the solution's components through to the vineyard operator's download of sensor data contained in an archive file.
+
 ![Image1](doco-images/vineyard-single-record-trace.jpg)
 
 ## Web Applications
@@ -141,11 +143,13 @@ Helpful hints for reviewing the software for this portion of the solution.
 * Microcontrollers are relatively inexpensive; typically in the $5 USD range.  If you have little to no experience in physically assembling IoT sensor stations, you may benefit from selecting an easy-to-use microcontroller to begin with.  Personally, the NodeMCU worked well for me to conduct all of my prototyping.  It not only has an on-board, integrated WiFi chip but it is easy-to-use and was my initial guess as to the microcontroller that I would use for the "at the vine" sensor station platform.
 
 Marketing photo of the NodeMCU microcontroller.
+
 ![Image1](doco-images/nodemcu.jpg)
 
 * When engaged in prototyping of any sort, eliminating as many extraneous variables as possible is useful.  Because this consulting engagement represented my first dive into AWS IoT, Arduino IDE programming, and designing IoT sensor stations, I selected a modern, popular, easy to use microcontroller (i.e., NodeMCU).  Because this microcontroller is popular, I found a large amount of sample firmware (including source code to control all of the sensors that I wound up using for the vineyard) within the Arduino IDE on-line community.  In addition, on the Internet at large, I found several high-quality, on-line tutorials. After gaining experience with the NodeMCU itself, I proceeded by incorporating different components into my sensor station platform prototypes, introducing one component at a time.  This "divide and conquer" strategy saved me time as I had fewer places to look when the sensor station platform behaved in unexpected ways.
 
 The photograph below is one I took, to share with my client, of an early successful, feature-complete proof of concept for the "at the vine" sensor station.  Ultimately, the only component pictured below that was incorporated into the final sensor station platform deployed to the 21 locations in the vineyard was the DS18B20 waterproof temperature sensor.
+
 ![Image1](doco-images/nodemcu-proto.jpg)
 
 ### Vinduino R3 Sensor Station Physical Configuration
