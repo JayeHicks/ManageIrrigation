@@ -30,6 +30,7 @@ Of direct interest to this solution, the Vinduino R3 possesses:
   * Soil moisture sensors leads (up to 4 sensors)
 
 The picture blow shows a Vinduino R3 Sensor Station straight out of the box.  To maximize the lifespan of each board, I soldered female IC sockets onto the boards so that they can accept the ESP8266-01 WiFi chip and the leads from the DS18B20 temperature sensor.  Note the prongs extending from the elevated mini board in the lower left-hand corner.  These prongs are used with a programming cable to flash firmware to the ATMega 328P.
+
 ![Image1](doco-images/vinduinoR3.jpg)
 
 The picture below shows the inventory of individual components required to assemble an "at the vine" sensor station: a mini solar panel, a 3.3V lithium ion battery, a Vinduino R3 Sensor Station, a DS18B20 waterproof temperature sensor, an ESP8266-01 WiFi chip, a set of three Watermark soil moisture sensors, and a hermetically-sealed, UV-resistant box. Note that the ESP8266-01 WiFi chip is not pictured below.  My client buried the three soil moisture sensors located at each specific vineyard location at the progressive depths of 12", 24", and 48".  
