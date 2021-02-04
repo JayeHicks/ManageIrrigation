@@ -544,7 +544,7 @@ You will find the source code for the scripts supporting sensor data ingestion a
 See the System Logging section below for details on the system logging functionality of the solution's data ingestion and curation functionality for the irrigation control and fermentation monitoring subsystems.
 
 ## Alarm Processing
-###Vineyard
+### Vineyard
 Individually, alarm detection algorithms can be turned on, turned off, or suspended for a set period of time.  After the suspension time period expires alarm detection processing automatically resumes.  Individually, the 21 "at the vine" sensor stations can be toggled between two states: "online" and "offline."  When a station is "online" its data will be considered by all alarm detection logic.  When a station is "offline" its data will not be considered by any alarm detection logic.  All data received from all sensor stations is ingested and stored irrespective of whether the station is currently in an online or offline state.
 
 Thresholds,  sensor data shelf life, and other values considered by alarm detection algorithms are configurable.  Most of these can be configured by the vineyard operator using a single page web application, but a few require the system administrator to adjust them by setting the value of an Attribute in a DynamoDB table.  
