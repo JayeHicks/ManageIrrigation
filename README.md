@@ -51,9 +51,7 @@ The following design principles emerged from initial planning sessions with the 
 
  
 # Solution Overview
-High-level, conceptualization of the solution documented in this repository.
-
-![Image1](doco-images/hl-arch.jpg)
+Refer to the diagarm above for a high-level, conceptualization of the solution documented in this repository.
 
 Vineyard operators can interact with the solution through multiple channels.  An AWS IAM user account is set up for each operator providing "read only" access to a select number of AWS services.  This enables read-only AWS Console access to S3 buckets, DynamoDB tables, and custom CloudWatch dashboards.  Vineyard operators can use their IAM user access key id / secret access key with CloudBerry Explorer to interact with S3 buckets.  User ids / passwords from an AWS Cognito user pool are also provisioned for each vineyard operator to enable secure access to multiple single page web applications.  These different applications enable the operator to perform several different tasks such as view sensor data / operational logs, perform ad hoc data entry, configure the irrigation controls, and configure the alarm settings for monitoring near-real-time sensor data.  If an alarm condition is detected operators receive notification by SMS message and / or email message.
 
