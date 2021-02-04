@@ -701,8 +701,8 @@ Be aware that my custom system logging solution requires special consideration w
   * What slowed me down for a little over an hours worth of head scratching was the simultaneous occurence of two things.
     * First, I successfully defined and used, for about a week, a table
     * Second, I successfully updated Attributes of existing Items on this table
-	* The whammy moment was when I added code to update a different Attribute but the name of that Attribute was a DynamoDB reserve.  
-	* The error messages where a little cryptic but once you get an idea of what's going on its not big deal and there are multiple, easy ways to get around the reserve word issue in DynamoDB UpdateExpressions
+	* The whammy moment was when I added code to update a different Attribute but the name of that Attribute was a DynamoDB reserve word.  
+	* The error messages were a little cryptic but once you get an idea of what's going on its not a big deal and there are multiple, easy ways to get around the reserve word issue in DynamoDB UpdateExpressions
  
 * During development and debugging pay close attention to the statements that you use to add data to a Table.  Most NoSQL databases, DynamoDB included, are flexible and will not catch/flag situations in which you mistype an Attribute name.  Instead, your flawed update/insert statement will execute and the net result will be that you introduce a brand new Attribute. 
 
