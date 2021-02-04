@@ -30,6 +30,8 @@ Single page web applications, that provide vineyard operators the ability to int
 # Overall Architecture
 The diagram above provides a high-level, logical architecture diagram.
 
+![Image1](doco-images/aws-backend.jpg)
+
 The backend, supporting all aspects of the solution, was constructed within a single AWS account.  Resources were provisioned in a single AWS region in relatively close proximity to the vineyard and winery.  All sensor data is ingested via IoT Core regardless of a sensor platform's inherent capacity to directly communicate with IoT Core.  Vineyard operators are free to use any modern Internet browser of their choice to view sensor data, view system logs, perform ad hoc data uploads, download historical sensor data, configure alarms, configure the irrigation algorithm, and configure fermentation monitoring.  
 
 # Initial Set Up
@@ -427,12 +429,15 @@ The solution is supported by several single page web applications.
   * View system logs for a given day (AWS platform logging only)
 
 A couple of screen snippets from the different single page web applications.
-Sensor data by date. 
+
+
+**accessing sensor data by date:** 
 
 ![Image1](doco-images/sensor_by_day.jpg)
 
 
-Log files by date. 
+
+**accessing log files by date:**
 
 ![Image1](doco-images/logs_by_day.jpg)
 
@@ -702,7 +707,7 @@ Be aware that my custom system logging solution requires special consideration w
     * First, I successfully defined and used, for about a week, a table
     * Second, I successfully updated Attributes of existing Items on this table
 	* The whammy moment was when I added code to update a different Attribute but the name of that Attribute was a DynamoDB reserve word.  
-	* The error messages were a little cryptic but once you get an idea of what's going on its not a big deal and there are multiple, easy ways to get around the reserve word issue in DynamoDB UpdateExpressions
+	* The error messages were a little cryptic but once you get an idea of what's going on its no big deal and there are multiple, easy ways to get around the reserve word issue in DynamoDB UpdateExpressions
  
 * During development and debugging pay close attention to the statements that you use to add data to a Table.  Most NoSQL databases, DynamoDB included, are flexible and will not catch/flag situations in which you mistype an Attribute name.  Instead, your flawed update/insert statement will execute and the net result will be that you introduce a brand new Attribute. 
 
