@@ -1,5 +1,6 @@
 # Introduction
 This is a marketing photo of the Raspberry PI 4 single board computer (hereafter referred to as "PI 4").
+
 ![Image1](doco-images/raspberry.jpg)
  
 The PI 4 was selected as the hardware platform to support the solution's Fermentation Monitoring subsystem.  Deployed indoors, the PI 4 is powered by a combination uninterrupted power supply / surge protector unit.  It receives a reliable and strong WiFi signal from the vineyard and winery's wireless network.  In keeping with overall design principles, the PI 4 runs a "plain-vanilla" Raspbian OS install (i.e., Debian-based Linux variant) and the minimum of additional software has been installed. The PI 4's GPIO pins are connected to each fermentation tank's pH meter and temperature sensor.
@@ -9,9 +10,11 @@ The PI 4 serves as the hardware platform for both the Irrigation Control subsyst
 Still there are important difference between Irrigation Control and Fermentation Monitoring.  Fermentation Monitoring does not involve the physical control of device as does Irrigation Control (e.g., valve actuator).  The pace at which situations develop for Fermentation Monitoring (e.g., pH level trending up) is typically measured in days whereas the pace at which situations develop for Irrigation Control (e.g., overflow indicates flooding of a block) is typically measured in minutes or hours.  
 
 The photo below is a marketing photo of the Atlas Gravity Analog pH Sensor / Meter and the Silver Chloride pH Probe that has been integrated into the solution to support Fermentation Monitoring.
+
 ![Image1](doco-images/ph-sensor.jpg)
 
 The photo below is a marketing photo of the DS18B20 temperature sensor that has been integrated into the solution to support Fermentation Monitoring. 
+
 ![Image1](doco-images/temp-probe.jpg)
 
 At the time of this writing, the Atlas pH meter package and the DS18B20 temperature sensor are components of a Fermentation Monitoring proof of concept.  The pH probe and the temperature probe come in direct contact with a substance that is intended for human consumption.  In the United States, the production of any substance intended for human consumption is subject to federal, and potentially state, regulations.  Research is currently underway to determine if these probes meet government regulatory standards.
@@ -38,30 +41,26 @@ Python 3+ was selected as the programming / scripting language to support intell
 * Temperature and pH level readings, for a given moment in time, are taken and transmitted to the AWS backend
 
 # Architecture
-Refer to the corresponding section in the **irrigation** folder's README.md file. 
-https://github.com/JayeHicks/ManageIrrigation/tree/master/irrigation
+Refer to the corresponding section of the README.md file in the **irrigation** [folder](https://github.com/JayeHicks/ManageIrrigation/tree/master/irrigation).
 
 ## Architecture Design
-Refer to the corresponding section in the **irrigation** folder's README.md file.
-https://github.com/JayeHicks/ManageIrrigation/tree/master/irrigation
+Refer to the corresponding section of the README.md file in the **irrigation** [folder](https://github.com/JayeHicks/ManageIrrigation/tree/master/irrigation).
 
 ### Maximize AWS, Minimize Raspberry PI 4
-Refer to the corresponding section in the **irrigation** folder's README.md file.
-https://github.com/JayeHicks/ManageIrrigation/tree/master/irrigation
+Refer to the corresponding section of the README.md file in the **irrigation** [folder](https://github.com/JayeHicks/ManageIrrigation/tree/master/irrigation).
 
 ### Durable Data
-Refer to the corresponding section in the **irrigation** folder's README.md file.
-https://github.com/JayeHicks/ManageIrrigation/tree/master/irrigation
+Refer to the corresponding section of the README.md file in the **irrigation** [folder](https://github.com/JayeHicks/ManageIrrigation/tree/master/irrigation).
 
 ### Data Integrity
-Refer to the corresponding section in the **irrigation** folder's README.md file.
-https://github.com/JayeHicks/ManageIrrigation/tree/master/irrigation
+Refer to the corresponding section of the README.md file in the **irrigation** [folder](https://github.com/JayeHicks/ManageIrrigation/tree/master/irrigation).
 
 ### Inter-Process Coordination
 Fermentation Monitoring processing on the PI 4 platform is carried out by a single Python 3+ script invoked by the Linux cron utility on a regular basis.
 
 ## Infrastucture / Network
 The diagram below is a logical infrastructure / network depiction of the solution's Fermentation Monitoring subsystem.
+
 ![Image1](doco-images/ferm-monitor.jpg)
 
 From a technology perspective, the largest operational challenge faced by the vineyard operators is maintaining reliable data communications.  The benefits of proactively rebooting all communications equipment on a scheduled basis has been presented to the client and all vineyard operators.  At present, this proactive rebooting process is conducted manually, by my client has committed to investing in an intelligent UPS (uninterrupted power supply) unit that can be programmed to cycle power to various pieces of equipment based on a defined schedule and can be remotely (i.e., over the Internet) directed to cycle power.
@@ -89,13 +88,13 @@ In support of Fermentation Monitoring, a vineyard operator can access a single p
 Vineyard operators gain access to the single-page web applications using a standard web browser and their AWS Cognito user pool user id and password.  Data input (i.e., new data and modification of existing data) is achieved through the combination of custom JavaScript and multiple JavaScript SDKs.  More detailed information (i.e., architecture, source code) on the single page web applications can be found in the README.md file of this repository's top-level folder named "backend."
 
 Screen capture snippet of a single-page web application that allows a vineyard operator to configure fermentation monitoring.
+
 ![Image1](doco-images/fermentation.jpg)
 
 # Software
-The Python 3+ script that supports fermentation monitoring will be loaded into the source-code subdirectory once final user acceptance testing has conclucded.  At the time of this writing, the software is currently running as a proof of concept.
-https://github.com/JayeHicks/ManageIrrigation/tree/master/fermentation/source-code
+The Python 3+ script that supports fermentation monitoring will be loaded into the source-code [subdirectory](https://github.com/JayeHicks/ManageIrrigation/tree/master/fermentation/source-code) once final user acceptance testing has conclucded.  At the time of this writing, the Fermentation Monitoring subsystem is currently running as a proof of concept.
 
-Fermentation Monitoring is supported by processing that occurs on the AWS platform as well as the PI 4 platform.  On the PI 4 platform, a single Python 3+ script is invoked on a regular basis by the operating system's cron utility as this is more robust that initiating a process at operating system boot time that is intended to run indefinitely.
+Fermentation Monitoring is supported by processing that occurs on the AWS platform as well as the PI 4 platform.  On the PI 4 platform, a single Python 3+ script is invoked on a regular basis by the operating system's cron utility.  This approach is more robust that initiating a long-running process at operating system boot time that is intended to run indefinitely.
 
 ## Alarms
 Alarm state detection logic for fermentation related sensor data is executed on the AWS platform.  In keeping with design principles, the only alarm processing logic conducted on the PI 4 platform is kept to the bare minimum (i.e., logic that cannot execute on the AWS platform easily or without introducing additional data and processing to allow it to execute on the AWS platform vs the PI 4 platform).
@@ -109,19 +108,19 @@ PI 4 based alarms:
 * Elapsed time since last date / time synch has exceeded limit
 
 ## System Logging
-Refer to the corresponding section in the irrigation folder's README.md file.
+Refer to the corresponding section of the README.md file in the **irrigation** [folder](https://github.com/JayeHicks/ManageIrrigation/tree/master/irrigation).
 
 ## Algorithms 
-The fermentation schedule directs the PI 4 processing logic when to conduct sensor measures.  The following set of records is a conceptual example of a fermentation schedule.
+The fermentation schedule directs the PI 4 processing logic when to conduct sensor measures.  The following pseudo JSON is a conceptual example of a fermentation schedule.
 ```
-time: 0:00, tank: 1, sensor: temp
-time: 0:00, tank: 1, sensor: pH
-time: 0:00, tank: 2, sensor: temp
-time: 0:00, tank: 2, sensor: pH
-time: 12:00, tank: 1, sensor: temp
-time: 12:00, tank: 1, sensor: pH
-time: 12:00, tank: 2, sensor: temp
-time: 12:00, tank: 2, sensor: pH
+{{time: 0:00,  tank: 1, sensor: temp},
+ {time: 0:00,  tank: 1, sensor: pH},
+ {time: 0:00,  tank: 2, sensor: temp},
+ {time: 0:00,  tank: 2, sensor: pH},
+ {time: 12:00, tank: 1, sensor: temp},
+ {time: 12:00, tank: 1, sensor: pH},
+ {time: 12:00, tank: 2, sensor: temp},
+ {time: 12:00, tank: 2, sensor: pH}}
 ```
 
 The basic algorithm
@@ -133,7 +132,4 @@ The basic algorithm
 * Exit
 
 # Tips and Techniques
-Refer to the "Python" and "Linux" subsection of the "Tips and Techniques" section in the README.md file located in the **irrigation** folder of this repository.
-https://github.com/JayeHicks/ManageIrrigation/tree/master/irrigation
-
-
+Refer to the "Python" and "Linux" subsection of the "Tips and Techniques" section in the README.md file located in the **irrigation** [folder](https://github.com/JayeHicks/ManageIrrigation/tree/master/irrigation).
