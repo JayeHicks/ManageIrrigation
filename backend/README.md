@@ -437,6 +437,9 @@ A couple of screen snippets from the different single page web applications.
 
 
 
+
+
+
 **accessing log files by date:**
 
 ![Image1](doco-images/logs_by_day.jpg)
