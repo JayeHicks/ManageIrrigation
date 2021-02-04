@@ -1,7 +1,9 @@
+![Image1](doco-images/hl-arch.jpg)
+
 # Introduction
 This repository documents the architecture and some design elements of a multi-platform IT solution developed for Lonesome Vine Vineyard and Winery located in Montague County Texas, USA.  It fulfills all original design specifications, and to date, continues to meet all operational requirements.  The solution's primary focus is on intelligent, data-driven, irrigation automation.  However, it additionally supports ad-hoc, manual data collection and basic fermentation monitoring.  The solution's near-real-time sensor data collection enables automated alarm state detection / notification (e.g., low battery level, freezing temperature, pH level, missing sensor data).  
 
-By up-front, mutual agreement, I maintain full rights to all aspects of the solution.  I have elected to share detailed insight into my work but beyond any doubt, all client specific detail (e.g., ids, passwords, AWS account numbers, etc.)  has been removed from all information contained within this repository.  None of my client's sensitive data is present on this repository.
+By up-front, mutual agreement, I maintain full rights to all aspects of the solution.  I have elected to share detailed insight into my work but beyond any doubt, all client specific detail (e.g., ids, passwords, AWS account numbers, etc.)  has been removed from all information contained within this repository.  None of my client's private or sensitive data is present on this repository.
 
 This repository contains source code for the entire solution however, recreating a comparable solution will require more than source code.  Standing up a comparable solution would require an account with a public cloud services provider, configuration  of resources within that account (i.e., services as well as service-to-service integrations), and a wide variety of independent, interoperating components such as a WiFi network, service from an Internet Service Provider (i.e., a modem), an assortment of physical sensors (e.g., temperature, soil moisture sensors, pH, liquid flow meter), low-power consumption sensor platform boards, an 8-channel relay module (e.g., 5V DC to 24V AC), and single board computers.  Each of these independent components require initialization, configuration, and physical deployment.  Regardless, any individual possessing a moderate degree of programming skill and an intermediate level of AWS experience should be able to bring up their own version of this solution with relatively little difficulty.  Numerous tips and techniques are contained within the multiple README.md files located in the different subdirectories.  I wrote the README.md files assuming a reader possession mastery of fundamental software development techniques and a solid command of primary, basic AWS services.
 
@@ -50,6 +52,7 @@ The following design principles emerged from initial planning sessions with the 
  
 # Solution Overview
 High-level, conceptualization of the solution documented in this repository.
+
 ![Image1](doco-images/hl-arch.jpg)
 
 Vineyard operators can interact with the solution through multiple channels.  An AWS IAM user account is set up for each operator providing "read only" access to a select number of AWS services.  This enables read-only AWS Console access to S3 buckets, DynamoDB tables, and custom CloudWatch dashboards.  Vineyard operators can use their IAM user access key id / secret access key with CloudBerry Explorer to interact with S3 buckets.  User ids / passwords from an AWS Cognito user pool are also provisioned for each vineyard operator to enable secure access to multiple single page web applications.  These different applications enable the operator to perform several different tasks such as view sensor data / operational logs, perform ad hoc data entry, configure the irrigation controls, and configure the alarm settings for monitoring near-real-time sensor data.  If an alarm condition is detected operators receive notification by SMS message and / or email message.
@@ -64,14 +67,14 @@ This logical network diagram provides an informative, high-level, conceptual dep
 ![Image1](doco-images/network-logical.jpg)
 
 # Repository Organization
-The information contained within this repository is organized into four subfolders: **vineyard**, **irrigation**, **fermentation**, and **backend**.  The first three subfolders contain details on physical devices, communications, source code, and a collection of practical tips and techniques.  The backend folder contains similar information but for the public cloud backend that underpins the entire solution (i.e., vineyard, irrigation, and fermentation).   
+The information contained within this repository is organized into four subfolders: **vineyard**, **irrigation**, **fermentation**, and **backend**.  The first three subfolders contain details on physical devices, communications, source code, and a collection of practical tips and techniques.  The backend subdirectory contains similar information but for the public cloud backend that underpins the entire solution (i.e., vineyard, irrigation, and fermentation).   
 
 All architectural and technical aspects of the solution's fermentation monitoring subsystem can be found within the solution's irrigation control subsystem.  As such, these two subsystems are sometimes documented together in this repository.  In some places fermentation monitoring sections refer the read to irrigation control sections.
 
-The **vineyard** folder covers two sensor station platforms: the commercially available Vinduino R3 Sensor Station and the commercially available Smart Home Weather Station.  This folder contains an informative README.md file as well as a source code subdirectory.
+The **vineyard** subdirecotry covers two sensor station platforms: the commercially available Vinduino R3 Sensor Station and the commercially available Smart Home Weather Station.  This folder contains an informative README.md file as well as a source code subdirectory.
 
-The **irrigation** folder focuses on a commercially available single board computer platform: Raspberry PI 4.  This folder contains an informative README.md file as well as a source code subdirectory.
+The **irrigation** subdirectory focuses on a commercially available single board computer platform: Raspberry PI 4.  This folder contains an informative README.md file as well as a source code subdirectory.
 
-The **fermentation** folder focuses on a commercially available single board computer platform: Raspberry PI 4.  This folder contains and informative README.md file as well as a source code subdirectory.
+The **fermentation** subdirectory focuses on a commercially available single board computer platform: Raspberry PI 4.  This folder contains and informative README.md file as well as a source code subdirectory.
 
-The **backend** folder provides information on the AWS backend supporting the solution.  It covers service configuration, service-to-service integration, source code (e.g., Lambda functions), cloud resident data, and single page web applications.   This folder contains an informative README.md file as well as a source code subdirectory.
+The **backend** subdirectory provides information on the AWS backend supporting the solution.  It covers service configuration, service-to-service integration, source code (e.g., Lambda functions), cloud resident data, and single page web applications.   This folder contains an informative README.md file as well as a source code subdirectory.
