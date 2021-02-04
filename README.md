@@ -62,6 +62,7 @@ Multiple third-party services are leveraged by the solution.   At present, two s
 From an architectural analysis perspective, it is useful to segment the physical environments located at the vineyard and winery into two categories: indoors and outdoors.  All locations in both environment types are covered by the vineyard and winery's WiFi network.  Two different sensor station platforms were selected for outside locations.  The primary criteria used to select these outdoors sensor platforms included electrical power self-sufficiency, low operational power consumption, and resiliency when exposed to outside conditions.  One of the outside location platforms collects overall weather conditions while the other collects current conditions at a specific vineyard location (i.e., "at the vine"). A  single sensor station platform was selected for all inside locations.  Currently, there are two inside locations, each specialized to a different task. 
 
 This logical network diagram provides an informative, high-level, conceptual depiction of the solution.
+
 ![Image1](doco-images/network-logical.jpg)
 
 # Repository Organization
