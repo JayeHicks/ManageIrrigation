@@ -30,8 +30,6 @@ Single page web applications, that provide vineyard operators the ability to int
 # Overall Architecture
 The diagram above provides a high-level, logical architecture diagram.
 
-![Image1](doco-images/aws-backend.jpg)
-
 The backend, supporting all aspects of the solution, was constructed within a single AWS account.  Resources were provisioned in a single AWS region in relatively close proximity to the vineyard and winery.  All sensor data is ingested via IoT Core regardless of a sensor platform's inherent capacity to directly communicate with IoT Core.  Vineyard operators are free to use any modern Internet browser of their choice to view sensor data, view system logs, perform ad hoc data uploads, download historical sensor data, configure alarms, configure the irrigation algorithm, and configure fermentation monitoring.  
 
 # Initial Set Up
@@ -430,15 +428,9 @@ The solution is supported by several single page web applications.
 
 A couple of screen snippets from the different single page web applications.
 
-
 **accessing sensor data by date:** 
 
 ![Image1](doco-images/sensor_by_day.jpg)
-
-
-
-
-
 
 **accessing log files by date:**
 
