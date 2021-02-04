@@ -1,13 +1,16 @@
 # Introduction
 This is a marketing photo of the Raspberry PI 4 single board computer (hereafter referred to as "PI 4").
+
 ![Image1](doco-images/raspberry.jpg)
  
 The PI 4 was selected as the hardware platform to support the solution's data-driven, automated Irrigation Control subsystem.  Deployed indoors, the PI 4 is powered by a combination uninterrupted power supply / surge protector unit.  It receives a reliable and strong WiFi signal from the vineyard and winery's wireless network.  In keeping with overall design principles, the PI 4 runs a "plain-vanilla" Raspbian OS install (i.e., Debian-based Linux variant) and the software installed on it was kept to a minimum. The PI 4's GPIO pins are employed for two functions: to control an 8-Channel Relay Module and to receive real-time input from a flow meter installed on the main water inlet from an irrigation well that serves the vineyard.
 
-The photo below is a marketing photo of the 8-Channel Relay selected for use in this solution.  The high voltage AC side opens / closes individual valves plumbed into the 7 separate irrigation pipes routed to the vineyard's blocks (i.e., A – G).  The low voltage DC side is connected to the GPIO pins of the PI 4.
+The photo below is a marketing photo of the 8-Channel Relay selected for use in this solution.  The high voltage AC side opens / closes individual valves plumbed into the 7 separate irrigation pipes routed to the vineyard's blocks (i.e., A â€“ G).  The low voltage DC side is connected to the GPIO pins of the PI 4.
+
 ![Image1](doco-images/relay.jpg)
 
 The photo below is a marketing photo of the flow meter used in this solution.  It is plumbed in-line from the irrigation well main water inlet before the fanout to the 7 irrigation blocks.  It is wired to GPIO pins on the PI 4.
+
 ![Image1](doco-images/flow_meter.jpg)
 
 Python 3+ was selected as the programming / scripting language that supports intelligent, automated  irrigation.  Every attempt was made to write efficient, self-contained scripts.  Modules were imported when warranted but they were all sourced from either the Python 3+ Standard Library or from the set of modules that commonly accompany a standard Python 3+ install.
@@ -38,7 +41,7 @@ Python 3+ was selected as the programming / scripting language that supports int
 # Architecture
 Unlike the Vinduino R3 Sensor Station and the Smart Home Sensor Station, the PI 4 is a general-purpose computer capable of serving as the sole platform for the solution's entire Irrigation Control subsystem.  That is, in and of itself, it is capable of storing all of the required data and executing all of the necessary algorithms to perform the Irrigation Control function.  This introduces architectural possibilities that are simply not present with the "at the vine" sensor platform and the "general weather" sensor platform.   
 
-Unaided,  the PI 4 is not a suitable platform for solution's Irrigation Control subsystem for several reasons.  It represents a single point of failure and is limited with respect to long-term data storage and overall availability.  There is absolutely no comparison between the capabilities / capacity of a single, standalone PI 4 and the collective capabilities / capacity available with AWS services (i.e., availability, durability, storage capacity, compute capacity, long-term storage capabilities, support of end user access to data, and much more).  
+Unaided,  the PI 4 is not a suitable platform for solution's Irrigation Control subsystem for several reasons.  It represents a single point of failure and is limited with respect to long-term data storage and overall availability.  There is absolutely no comparison between the capabilities / capacity of a single, standalone PI 4 and the collective capabilities / capacity available with AWS services (i.e., availability, durability, storage capacity, compute capacity, long-term storage capabilities, support of vineyard operator access to data, and much more).  
 
 A simple design of connecting relatively "dumb" sensors to an AWS backend, having the AWS backend store all data and conduct all algorithmic processing, is unsuitable due to the potential for interconnectivity issues between the sensors and AWS.  The data communications link between the vineyard and the outside world (i.e., Internet -> AWS) experiences unexpected outages of variable duration.  When the communications link is available, the effective available bandwidth can vary and do so into an unacceptable range.  A design directive requires continuation of normal vineyard operations, for a limited time, during Internet outages and periods of unacceptable bandwidth, making this design unsuitable.
 
@@ -54,7 +57,8 @@ In keeping with design principles, the architecture of the solution's Irrigation
 ## Architecture Design
 Some of the architectural elements of the solution's Irrigation Control subsystem warrant high-level description.
 
-Logical, high-level Raspberry PI platform sensor data ingestion path.
+Logical, high-level Raspberry PI 4 platform sensor data ingestion path.
+
 ![Image1](doco-images/ware-well-house-sensor-ingest.jpg)
 
 ### Maximize AWS, Minimize Raspberry PI 4
@@ -65,6 +69,7 @@ The amount of data and processing resident on the PI 4 is minimized to what is r
 System logging functionality is in place for the solution's Irrigation Control subsystem.  This system logging, as well as the system logging for the solution's Fermentation Monitoring, is the only case of data and processing that exists independent of the AWS platform. More detail on Irrigation Control system logging can be found below.
 
 The architectural blending of the PI 4 and AWS platforms can be illustrated with the diagram below.  In this scenario the execution of an irrigation schedule, generated by the solution's "Intelligent Scheduling" mode, is interrupted by a vineyard operator.  The operator accesses a single page web application and takes zone A "offline," rendering it ineligible for irrigation.  The next "driest" zone (as determined by current soil moisture sensor readings) in this scenario happens to be zone B.  Zone B is scheduled, by the AWS platform, for irrigation and will receive irrigation for the remainder of the time allocated to the irrigation event which commenced with the irrigation of zone A. 
+
 ![Image1](doco-images/comms_example.jpg)
 
 ### Durable Data
@@ -84,6 +89,7 @@ During an irrigation event it is possible for the oversight process to premature
 
 ## Infrastructure / Network
 A logical infrastructure / network diagram for the Irrigation Control subsystem of the solution.
+
 ![Image1](doco-images/irrigation-valve.jpg)
 
 From a technology perspective, the largest operational challenge faced by the vineyard operators is maintaining reliable data communications.  The benefits of proactively rebooting all communications equipment on a scheduled basis has been presented to the client and all vineyard operators.  At present, this proactive rebooting process is conducted manually, by my client has committed to investing in an intelligent UPS (uninterrupted power supply) unit that can be programmed to cycle power to various pieces of equipment based on a defined schedule and can be remotely (i.e., over the Internet) directed to cycle power.
@@ -111,17 +117,17 @@ For Irrigation Control, a vineyard operator can work through different single pa
   * Configure the Intelligent Scheduling algorithm
   * Define irrigation schedule for Set Scheduling mode
 
-Vineyard operators gain access to the single-page web applications using a standard web browser and their AWS Cognito user pool user id and password.  Data input (i.e., new data and modification of existing data) is achieved through the combination of custom JavaScript and multiple JavaScript SDKs.  More detailed information (i.e., architecture, source code) on the single page web applications can be found in the README.md file of the subfolder **backend**.
-https://github.com/JayeHicks/ManageIrrigation/tree/master/backend
+Vineyard operators gain access to the single-page web applications using a standard web browser and their AWS Cognito user pool user id and password.  Data input (i.e., new data and modification of existing data) is achieved through the combination of custom JavaScript and multiple JavaScript SDKs.  More detailed information (i.e., architecture, source code) on the single page web applications can be found in the README.md file in the **backend** [subfolder](https://github.com/JayeHicks/ManageIrrigation/tree/master/backend).
 
 Screen capture snippet of a single-page web application that allows a vineyard operator to configure data driven algorithm that automatically controls vineyard irrigation.
+
 ![Image1](doco-images/irrigation.jpg)
 
 # Software
-The  complete set of Python 3+ scripts that support the solution's Irrigation Control subsystem will be loaded in the source-code subdirectory after final user acceptance testing concludes.  At the time of this writing final use acceptance testing is underway.
-https://github.com/JayeHicks/ManageIrrigation/tree/master/irrigation/source-code
+The  complete set of Python 3+ scripts that support the solution's Irrigation Control subsystem will be loaded in the source-code [subdirectory](https://github.com/JayeHicks/ManageIrrigation/tree/master/irrigation/source-code) after final user acceptance testing concludes.  At the time of this writing final use acceptance testing is underway.
 
 High-level application architecture of the solution's Irrigation Control subsystem.
+
 ![Image1](doco-images/irr-algorithm.jpg)
 
 For Irrigation Control, the PI 4 platform carries out two basic functions: turn irrigation valves on / off, report how much water was dispensed to a vineyard block. To achieve these functions, two Python 3+ scripts are deployed on to the PI4: an Oversight script and an Irrigation script.  The Oversight script is invoked on a regular basis by the PI 4's operating systems cron utility.  The Oversight script invokes the Irrigation script, as necessary, to oversee the irrigation of a specific vineyard block.  The Oversight script can stop the Irrigation script, if necessary, and is also responsible for communicating with the AWS backend.  The Irrigation script is responsible for not only opening irrigation valves but also tracking the amount of water flowing to a vineyard block.  By tracking water flow the irrigation script can detect under / over flow alarm states and calculate the total amount of water dispensed to a vineyard block.
@@ -202,8 +208,8 @@ PI 4 alarm processing
 Real-time awareness of Irrigation Control alarms is a high priority for vineyard operators.  Under / over irrigation at certain critical times during the year can have a devasting impact the quantity and the quality of a vineyard's grape production.  Vineyard operators can use a single page web application to customize the expected flow rate for each vineyard block in order to proactively detect irrigation issues in near-real-time.
 
 ## System Logging
-See the System Logging section of the README.md file located in the **backend** subdirectory of this repository for a holistic treatment of the entire solution's system logging functionality.
-https://github.com/JayeHicks/ManageIrrigation/tree/master/backend
+See the System Logging section of the README.md file located in the **backend** [subdirectory](https://github.com/JayeHicks/ManageIrrigation/tree/master/backend) of this repository for a holistic treatment of the entire solution's system logging functionality.
+
 
 For processing that occurs on the PI 4 platform, system logging data and processing is kept on the PI 4 platform.  If it were not for the potential for data communication issues between the PI 4 platform and the AWS platform (i.e., unavailability or unacceptable bandwidth), processing occurring on the PI 4 platform would submit system logging messages to the AWS backend for storage.  The data generated by processing occurring on the PI 4 platform represents the only data across the entire solution that is not stored in AWS.  Even though the PI 4 system logging system is independent of the AWS backend, it will forward a copy of any error message or serious issue message to the AWS backend for long term storage.
 
@@ -251,7 +257,7 @@ The PI 4 localized system logging solution does not introduce a data fragmentati
   * Exit
 
 # Tips and Techniques
-* Ensure that the channel relay you select completely isolates low voltage DC, coming from the PI 4, from high voltage used to actuate the irrigation valves.  This separation is often referred to as ‘optocoupler isolation.  Without the separation, high voltage current can damage the PI 4 board.
+* Ensure that the channel relay you select completely isolates low voltage DC, coming from the PI 4, from high voltage used to actuate the irrigation valves.  This separation is often referred to as â€˜optocoupler isolation.  Without the separation, high voltage current can damage the PI 4 board.
 * Python
    * System logging
       * There is a wide variety of Python modules readably available that one can use for system logging, however, I elected to craft my own minimalistic, streamlined logging solution that would contain no extraneous functionality
@@ -263,6 +269,4 @@ The PI 4 localized system logging solution does not introduce a data fragmentati
       * By storing the hash value of a data set alongside the data set, the hash function can be run again in the future to verify its data integrity on either the PI 4 platform or the AWS platform
   * A regularly executed script (i.e., Linux cron job) is less complicated and more reliable / robust than a long running script
 * Linux
-  * I found it easier to develop on my laptop using Windows Subsystem for Linux (WSL) versus on the Raspberry PI 4.  I did not do so by installing Linux on my machine to enable dual booting it into Linux or Windows.  The WSL is not a full-blown OS install.  Instead, it is a lightweight compatibility layer that enables you to run Linux binary executables (in ELF format) natively on Windows 10.
-
-
+  * I found it easier to develop on my laptop using Windows Subsystem for Linux (WSL) versus on the PI 4.  I did not do so by installing Linux on my machine to enable dual booting it into Linux or Windows.  The WSL is not a full-blown OS install.  Instead, it is a lightweight compatibility layer that enables you to run Linux binary executables (in ELF format) natively on Windows 10.
