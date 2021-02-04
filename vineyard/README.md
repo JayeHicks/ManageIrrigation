@@ -3,21 +3,21 @@ Normal vineyard operations include the ongoing collection and processing of sens
 
 # General Weather Conditions
 A marketing photo of WeatherFlow's commercially available Smart Home Sensor Station.
+
 ![Image1](doco-images/weather-flow.jpg)
 
-For the daily collection of local, general weather conditions, the Smart Home Sensor Station was selected and integrated into the solution.  From this solution's perspective, this sensor platform can be considered "closed" as it reports sensor data to a specific backend.  The platform cannot be configured to send sensor data directly to AWS IoT.  As such, an AWS Lambda function is invoked on a scheduled basis, via an AWS CloudWatch Event Rule, to obtain sensor data from an Internet endpoint and pass the data along to AWS IoT (see diagram below).  The Python source code for this Lambda function is contained in the weather_station.py file located in the **backend** folder in the [source-code/at-the-vine/data-ingest-curate](https://github.com/JayeHicks/ManageIrrigation/tree/master/backend/source-code/at-the-vine/data-ingest-curate) subdirectory. 
+For the daily collection of local, general weather conditions, the Smart Home Sensor Station was selected and integrated into the solution.  From this solution's perspective, this sensor platform can be considered "closed" as it reports sensor data to a specific backend.  The platform cannot be configured to send sensor data directly to AWS IoT.  As such, an AWS Lambda function is invoked on a scheduled basis, via an AWS CloudWatch Event Rule, to obtain sensor data from an Internet endpoint and pass the data along to AWS IoT (see diagram below).  The Python source code for this Lambda function is contained in the weather_station.py file located in the **backend** folder in the [source-code/at-the-vine/data-ingest-curate](https://github.com/JayeHicks/ManageIrrigation/tree/master/source-code/at-the-vine/data-ingest-curate) subdirectory. 
 
 Logical, high-level Smart Home Sensor Station sensor data ingestion path.
 
 ![Image1](doco-images/wf-vineyard-sensor-ingest.jpg)
-
 
 General weather conditions data is collected and stored, long term, for the purpose of future reference of historical weather conditions data.  This data is not collected to support alarm state detection nor presentation to vineyard operators via a single page web application.  The data is ingested daily and housed in a DynamoDB table.  At the beginning of each month the previous month's data is bundled together and archived into a CSV (comma separated value) formatted file that is placed into a special purpose S3 bucket.  Vineyard operators interact with this day by accessing archive files contained in the special purpose archival bucket. 
 
 The architecture, design, and technologies supporting ingestion, management, and access of general weather conditions data is a proper subset of the architecture, design, and technologies supporting "at the vine" sensor data.  Refer to the "conditions at the vine" section below for this detail.
 
 # At the Vine Conditions
-For the hourly collection of sensor data "at the vine," the commercially available Vinduino R3 Sensor Station, was selected and integrated into the solution.  In addition to writing the firmware for this sensor station, each of the 21 boards required sensor integration and mounting into a suitable weather-proof box (see picture below).  This involved soldering, cable fabrication, modification to each box, and source materials from my local hardware store).   
+For the hourly collection of sensor data "at the vine," the commercially available Vinduino R3 Sensor Station, was selected and integrated into the solution.  In addition to writing the firmware for this sensor station, each of the 21 boards required sensor integration and mounting into a suitable weather-proof box (see picture below).  This involved soldering, cable fabrication, modification to each box, and source materials from my local hardware store.   
 
 "Vinduino" is a play on words (i.e., Vineyard + Arduino).  The Arduino IDE (integrated develop environment) is a popular, no-cost software application used to flash firmware to a wide selection of commercially available, micro controllers.  Generally speaking, microcontrollers have limited resources and run a special-purpose program.  In contrast, microcomputers generally have ample resources, run a general-purpose operating system, and are capable of running a wide variety of programs.  To use the Arduino IDE, you write procedural code in a C / C++ like language, select your target micro controller, physically connect a programming cable from the computer running the Arduino IDE to the micro controller, and then finally select an arrow icon in the Arduino IDE's title bar to flash the firmware you wrote onto the connected micro controller.
 
@@ -29,17 +29,17 @@ Of direct interest to this solution, the Vinduino R3 possesses:
   * Solar panel leads
   * Soil moisture sensors leads (up to 4 sensors)
 
-The picture blow shows a Vinduino R3 Sensor Station straight out of the box.  To maximize the lifespan of each board, I soldered female IC sockets onto the boards so that they can accept the ESP8266-01 WiFi chip and the leads from the DS18B20 temperature sensor.  Note the prongs extending from the elevated mini board in the lower left-hand corner.  These prongs are used with a programming cable to flash firmware to the ATMega 328P.
+I labeled teh marketing photo below of a Vinduino R3 Sensor Station straight out of the box.  To maximize the lifespan of each board, I soldered female IC sockets onto the boards so that they can accept the ESP8266-01 WiFi chip and the leads from the DS18B20 temperature sensor.  Note the prongs extending from the elevated mini board in the lower left-hand corner.  These prongs are used with a programming cable to flash firmware to the ATMega 328P.
 
 ![Image1](doco-images/vinduinoR3.jpg)
 
-The picture below shows the inventory of individual components required to assemble an "at the vine" sensor station: a mini solar panel, a 3.3V lithium ion battery, a Vinduino R3 Sensor Station, a DS18B20 waterproof temperature sensor, an ESP8266-01 WiFi chip, a set of three Watermark soil moisture sensors, and a hermetically-sealed, UV-resistant box. Note that the ESP8266-01 WiFi chip is not pictured below.  My client buried the three soil moisture sensors located at each specific vineyard location at the progressive depths of 12", 24", and 48".  
+I took the picture below to document the full inventory of individual components required to assemble an "at the vine" sensor station: a mini solar panel, a 3.3V lithium ion battery, a Vinduino R3 Sensor Station, a DS18B20 waterproof temperature sensor, an ESP8266-01 WiFi chip, a set of three Watermark soil moisture sensors, and a hermetically-sealed, UV-resistant box. Note that the ESP8266-01 WiFi chip is not pictured below.  My client buried the three soil moisture sensors located at each specific vineyard location at the progressive depths of 12", 24", and 48".  
 
 ![Image1](doco-images/vineyard-station.jpg)
 
-The picture below shows an assembled "at the vine" sensor station that is being flashed with firmware prior to deployment.  The ESP8266-01 chip, missing in the previous picture, is located in the upper right-hand corner of this picture.  At a vineyard location, cabling from the three soil moisture sensors and the temperature sensor will be routed up through a hole drilled into the bottom of the box.  In addition, the miniature solar panel will be attached inside the box which is pole mounted at the optimal angle for receiving sunlight.    
+I took the picture below to document an assembled "at the vine" sensor station that is being flashed with firmware prior to deployment.  The ESP8266-01 chip, missing in the photograph above, is located in the upper right-hand corner of this picture.  At a vineyard location, cabling from the three soil moisture sensors and the temperature sensor will be routed up through a hole drilled into the bottom of the box.  In addition, the miniature solar panel will be attached inside the box; the box will be pole-mounted at the optimal angle to receive maximum sunlight.    
 
-To help manage condensation within the box multiple silica gel packs are sandwiched between the white PVC board (i.e., with writing on it) and the back of the box.  The hole in the bottom of the box, used to route cables through, is caulked with silicon.  And before physical deployment into the vineyard, a vineyard operator blasts nitrogen into the box.
+To help manage condensation within the box multiple silica gel packs are sandwiched between the white PVC board (i.e., thge surface with writing on it) and the back of the box.  The hole in the bottom of the box, used to route cables through, is caulked with silicon adhesive.  And finally, before physical deployment into the vineyard, a vineyard operator blasts nitrogen into the box.
 
 ![Image1](doco-images/vineyard-station2.jpg)
 
@@ -50,14 +50,14 @@ To help manage condensation within the box multiple silica gel packs are sandwic
     * Minimize the amount of processing logic and data stored on the platform
 * Sensor data transmission is by design a one-time, one-way communication event
   * There is no provision to detect the success / failure of data transmission
-  * Sensor data is not stored; this would be necessary for data transmission retries across sleep / wake cycles
+  * Sensor data is not stored on the sensor platform; this would be necessary for data transmission retries across sleep / wake cycles
   * Individual stations attempt 24 transmissions a day; a single successful data transmission per day is acceptable
 * For data communications, the Vinduino R3 Sensor Station can be configured to use the ESP866-01 WiFi chip or a LoRa module. R3 boards in this solution are configured with the ESP8266-01.
   * Following design principles, the ESP8266-01 is used "as is."  No physical modifications (e.g., soldering wires to connect chip pins together) were made to the chip and its factory firmware is used.
   * Communication, using ESP8266-01 chips running factory firmware, is achieved using primitive "AT" commands 
      * AT commands are essentially primitive TCP / IP commands
      * Using AT commands to directly submit sensor data to AWS IoT is impractical, if not impossible
-     * An Internet-based service provider has been incorporated into the solution to serve as an intermediary that is polled by a scheduled AWS Lambda function that feeds sensor data to AWS IoT
+     * An Internet-based service provider has been incorporated into the solution to serve as an intermediary that is polled by a scheduled AWS Lambda function to feed sensor data to AWS IoT
      * Should a future need arise, it is most likely possible to configure an API Gateway endpoint to serve as the "http" target for the Vinduino R3 Sensor Station platform.  I'd have to investigate this further as API Gateway only supports the creation of "https" endpoints.
   * Communication events are one-time, one-way.
   * The AWS backend ingress point for this sensor station is AWS IoT Core.  This requires an intermediary between the Vinduino R3 and AWS
@@ -66,11 +66,11 @@ To help manage condensation within the box multiple silica gel packs are sandwic
 Data communications for the "at the vine" sensor station platform flows in one direction: from the sensor station towards the AWS backend.  Each data transmission event is a one-time, one-way single attempt.  Data transmitted from the "at the vine" sensor station that is not received by the third-party service provider (e.g., www.thingspeak.com) is irretrievably lost.  This is acceptable as individual stations attempt 24 transmissions a day and a single successful data transmission per day is deemed adequate.
 
 The diagram below provides additional detail beyond the more abstract diagram labeled "Vineyard Sensor Stations, Weather Station" contained in the "General Weather Conditions" section above. 
+
 ![Image1](doco-images/vineyard-sensor-ingest-detail.jpg)
 
 
 The diagram below provides a detailed trace of a single Vinduino R3 Sensor Station data record across all of the solution's components through to the vineyard operator's download of sensor data contained in an archive file.
-
 ![Image1](doco-images/vineyard-single-record-trace.jpg)
 
 ## Web Applications
@@ -88,8 +88,8 @@ Single page web applications, working with "at the vine" sensor data, provide th
 * View current sensor data records; view sensor data records for a specific date
 * View current system logs; view system logs for a specific date
 
-Vineyard operators gain access to the single-page web applications using a standard web browser and their AWS Cognito user pool user id and password.  Data input (i.e., new data and modification of existing data) is achieved through the combination of custom JavaScript and multiple JavaScript SDKs.  More detailed information (i.e., architecture, source code) on the single page web applications can be found in the README.md file of the **backend** subdirectory.
-https://github.com/JayeHicks/ManageIrrigation/tree/master/backend
+Vineyard operators gain access to the single-page web applications using a standard web browser and their AWS Cognito user pool user id and password.  Data input (i.e., new data and modification of existing data) is achieved through the combination of custom JavaScript and multiple JavaScript SDKs.  More detailed information (i.e., architecture, source code) on the single page web applications can be found in the README.md file of the **backend** [subdirectory](https://github.com/JayeHicks/ManageIrrigation/tree/master/backend).
+
 
 Screen capture snippet of a single-page web application that allows a vineyard operator to configure sensor data monitoring alarms.
 
@@ -100,7 +100,7 @@ General information and guidance for the Arduino IDE can be easily sourced at ww
 
 To flash firmware to a micro controller using the Arduino IDE, you write algorithms in a C / C++ like language, select the target micro controller, physically connect a programming cable from the computer running the Arduino IDE to the micro controller, and finally select an arrow icon in the Arduino IDE's title bar to flash the firmware you wrote onto the micro controller.  After you have successfully flashed firmware to a microcontroller, or power up a microcontroller that you have previously flashed, the firmware automatically begins executing.  Specifically, the function named setup() executes a single time and then the function named loop() is invoked infinitely. 
 
-The software for the solution's "at the vine" sensor station (i.e., Vinduino R3 Sensor Station) is firmware that you flash to a microcontroller.  It can be found the source-code/at-the-vine subdirectory.
+The software for the solution's "at the vine" sensor station (i.e., Vinduino R3 Sensor Station) is firmware that you flash to a microcontroller.  It can be found the source-code/at-the-vine [subdirectory](https://github.com/JayeHicks/ManageIrrigation/tree/master/vineyard/source-code/at-the-vine).
 https://github.com/JayeHicks/ManageIrrigation/tree/master/vineyard/source-code/at-the-vine
 
 Helpful hints for reviewing the software for this portion of the solution.
