@@ -39,7 +39,7 @@ I took the picture below to document the full inventory of individual components
 
 I took the picture below to document an assembled "at the vine" sensor station that is being flashed with firmware prior to deployment.  The ESP8266-01 chip, missing in the photograph above, is located in the upper right-hand corner of this picture.  At a vineyard location, cabling from the three soil moisture sensors and the temperature sensor will be routed up through a hole drilled into the bottom of the box.  In addition, the miniature solar panel will be attached inside the box; the box will be pole-mounted at the optimal angle to receive maximum sunlight.    
 
-To help manage condensation within the box multiple silica gel packs are sandwiched between the white PVC board (i.e., thge surface with writing on it) and the back of the box.  The hole in the bottom of the box, used to route cables through, is caulked with silicon adhesive.  And finally, before physical deployment into the vineyard, a vineyard operator blasts nitrogen into the box.
+To help manage condensation within the box multiple silica gel packs are sandwiched between the white PVC board (i.e., the surface with writing on it) and the back of the box.  The hole in the bottom of the box, used to route cables through, is caulked with silicon adhesive.  And finally, before physical deployment into the vineyard, a vineyard operator blasts nitrogen into the box.
 
 ![Image1](doco-images/vineyard-station2.jpg)
 
