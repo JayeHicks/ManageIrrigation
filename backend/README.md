@@ -33,7 +33,7 @@ The diagram above provides a high-level, logical architecture diagram.
 The backend, supporting all aspects of the solution, was constructed within a single AWS account.  Resources were provisioned in a single AWS region in relatively close proximity to the vineyard and winery.  All sensor data is ingested via IoT Core regardless of a sensor platform's inherent capacity to directly communicate with IoT Core.  Vineyard operators are free to use any modern Internet browser of their choice to view sensor data, view system logs, perform ad hoc data uploads, download historical sensor data, configure alarms, configure the irrigation algorithm, and configure fermentation monitoring.  
 
 # Initial Set Up
-All manner of information regarding the basic set up of an AWS account, working with AWS services, setting up AWS service-to-service integration, and invoking AWS services programmatically can be sourced at www.aws.amazon.com, as well as a number of sources discoverable from general Internet searching.
+All manner of information regarding the basic set up of an AWS account, working with AWS services, setting up AWS service-to-service integration, and invoking AWS services programmatically can be sourced at www.aws.amazon.com, as well as a number of sources discoverable from general Internet searching. 
 
 As the target audience of this repository possesses a moderate degree of programming skill and an intermediate level of AWS experience, this section will not provide the sort of detailed, step-by-step guidance appropirate to a beginner's guide.
 
