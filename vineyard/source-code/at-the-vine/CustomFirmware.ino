@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Jaye Hicks, 2020
+ * Jaye Hicks, 2020 
  * 
  * Obligatory legal disclaimer:
  *   You are free to use this source code (this file and all other files 
