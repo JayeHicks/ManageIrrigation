@@ -9,7 +9,7 @@ The PI 4 serves as the hardware platform for both the Irrigation Control subsyst
 
 Still there are important difference between Irrigation Control and Fermentation Monitoring.  Fermentation Monitoring does not involve the physical control of device as does Irrigation Control (e.g., valve actuator).  The pace at which situations develop for Fermentation Monitoring (e.g., pH level trending up) is typically measured in days whereas the pace at which situations develop for Irrigation Control (e.g., overflow indicates flooding of a block) is typically measured in minutes or hours.  
 
-The photo below is a marketing photo of the Atlas Gravity Analog pH Sensor / Meter and the Silver Chloride pH Probe that has been integrated into the solution to support Fermentation Monitoring.
+The photo below is a marketing photo of the Atlas Gravity Analog pH Sensor / Meter and the Silver Chloride pH Probe that has been integrated into the solution to support Fermentation Monitoring. 
 
 ![Image1](doco-images/ph-sensor.jpg)
 
