@@ -1,4 +1,4 @@
-"""
+""" 
 Jaye Hicks 2020
 
 Obligatory legal disclaimer:
@@ -10,7 +10,7 @@ Obligatory legal disclaimer:
   IS WITH YOU.  SHOULD THE SOURCE CODE PROVE DEFECTIVE, YOU ASSUME THE
   COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION. See the GNU 
   GENERAL PUBLIC LICENSE Version 3, 29 June 2007 for more details.
-  
+
 Overall, sensor data flows from vineyard sensor stations to 
 www.thingspeak.com to the AWS backend. This module is responsible for
 pulling data from www.thingspeak.com and kicking off the data's
@@ -71,19 +71,20 @@ from datetime import datetime, timedelta
 from boto3.dynamodb.conditions import Key
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
 
-STATUS_TABLE         = 'table_name_1'
-CONTROL_TABLE        = 'table_name_2'
+STATUS_TABLE         = 'VinStationsStatus'
+CONTROL_TABLE        = 'VinStationsControl'
 CONTROL_ITEM_SELECT  = '2'
 
-SNS_TOPIC_ARN        = 'arn:aws:sns:us-east-1:123456789012:alert_name'
+SNS_TOPIC_ARN        = 'arn:aws:sns:us-east-1:123456789012:Vineyard-Alerts'
 
 COMMON_ENDPOINT       = 'https://api.thingspeak.com/channels/'
 #API_KEY               = '1234567890123456'   #debug; this is for POC
 #CHANNEL_ID            = '1234567'            #debug; this is for POC
+#MINS_BACKWARD         = '600'                #debug; this is for POC
 API_KEY               = '1234567890123456'   #production
 CHANNEL_ID            = '1234567'            #production
 MINS_BACKWARD         = '30'                 #production
-#MINS_BACKWARD         = '600'                 #debug
+
                            
 device_shadows = {} #explained in header comments of _get_device_shadow_client()
        
@@ -92,93 +93,92 @@ LOCATIONS    = ['A02N', 'A08M', 'A02S', 'B02N', 'B08M', 'B02S', 'C02N',
                 'E02S', 'F02N', 'F08M', 'F02S', 'G02N', 'G08M', 'G02S']
                 
 MQTT_VALUES = {'host_name' : '12345678901234-ats.iot.us-east-1.amazonaws.com',
-               'mqtt_port' : 8883,
-               'shadow_client' : 'VineyardSensorStations'}
+               'mqtt_port' : 8883}
 
 SHADOW_SECURITY = {'A02N' : {'private_key' : 'Security/1234567890-private.pem.key',
                              'cert_file' : 'Security/1234567890-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'A02N'},                             
-                   'A02S' : {'private_key' : 'Security/2345678901-private.pem.key',
-                             'cert_file' : 'Security/2345678901-certificate.pem.crt',
+                   'A02S' : {'private_key' : 'Security/1234567890-private.pem.key',
+                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'A02S'}, 
-                   'A08M' : {'private_key' : 'Security/3456789012-private.pem.key',
-                             'cert_file' : 'Security/3456789012-certificate.pem.crt',
+                   'A08M' : {'private_key' : 'Security/1234567890-private.pem.key',
+                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'A08M'},
-                   'B02N' : {'private_key' : 'Security/4567890123-private.pem.key',
-                             'cert_file' : 'Security/4567890123-certificate.pem.crt',
+                   'B02N' : {'private_key' : 'Security/1234567890-private.pem.key',
+                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'B02N'},
-                   'B02S' : {'private_key' : 'Security/5678901234-private.pem.key',
-                             'cert_file' : 'Security/5678901234-certificate.pem.crt',
+                   'B02S' : {'private_key' : 'Security/1234567890-private.pem.key',
+                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'B02S'},
-                   'B08M' : {'private_key' : 'Security/6789012345-private.pem.key',
-                             'cert_file' : 'Security/6789012345-certificate.pem.crt',
+                   'B08M' : {'private_key' : 'Security/1234567890-private.pem.key',
+                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'B08M'},
-                   'C02N' : {'private_key' : 'Security/7890123456-private.pem.key',
-                             'cert_file' : 'Security/7890123456-certificate.pem.crt',
+                   'C02N' : {'private_key' : 'Security/1234567890-private.pem.key',
+                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'C02N'},
-                   'C02S' : {'private_key' : 'Security/8901234567-private.pem.key',
-                             'cert_file' : 'Security/8901234567-certificate.pem.crt',
+                   'C02S' : {'private_key' : 'Security/1234567890-private.pem.key',
+                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'C02S'},
-                   'C08M' : {'private_key' : 'Security/9012345678-private.pem.key',
-                             'cert_file' : 'Security/9012345678-certificate.pem.crt',
+                   'C08M' : {'private_key' : 'Security/1234567890-private.pem.key',
+                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'C08M'},
-                   'D02N' : {'private_key' : 'Security/0123456789-private.pem.key',
-                             'cert_file' : 'Security/0123456789-certificate.pem.crt',
+                   'D02N' : {'private_key' : 'Security/1234567890-private.pem.key',
+                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'D02N'},
-                   'D02S' : {'private_key' : 'Security/a123456789-private.pem.key',
-                             'cert_file' : 'Security/a123456789-certificate.pem.crt',
+                   'D02S' : {'private_key' : 'Security/c5827c4737-private.pem.key',
+                             'cert_file' : 'Security/c5827c4737-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'D02S'},
-                   'D08M' : {'private_key' : 'Security/a234567890-private.pem.key',
-                             'cert_file' : 'Security/a234567890-certificate.pem.crt',
+                   'D08M' : {'private_key' : 'Security/1234567890-private.pem.key',
+                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'D08M'},
-                   'E02N' : {'private_key' : 'Security/a345678901-private.pem.key',
-                             'cert_file' : 'Security/a345678901-certificate.pem.crt',
-                             'root_ca' : 'Security/Amazon_root_CA_1.pem'
+                   'E02N' : {'private_key' : 'Security/1234567890-private.pem.key',
+                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+                             'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'E02N'},
-                   'E02S' : {'private_key' : 'Security/a456789012-private.pem.key',
-                             'cert_file' : 'Security/a456789012-certificate.pem.crt',
+                   'E02S' : {'private_key' : 'Security/1234567890-private.pem.key',
+                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'E02S'},
-                   'E08M' : {'private_key' : 'Security/a5678901234-private.pem.key',
-                             'cert_file' : 'Security/a567891234-certificate.pem.crt',
+                   'E08M' : {'private_key' : 'Security/43ec29e709-private.pem.key',
+                             'cert_file' : 'Security/43ec29e709-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'E08M'},
-                   'F02N' : {'private_key' : 'Security/a6789123456-private.pem.key',
-                             'cert_file' : 'Security/a678901234-certificate.pem.crt',
+                   'F02N' : {'private_key' : 'Security/1234567890-private.pem.key',
+                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'F02N'},
-                   'F02S' : {'private_key' : 'Security/a7890123456-private.pem.key',
-                             'cert_file' : 'Security/a789012345-certificate.pem.crt',
+                   'F02S' : {'private_key' : 'Security/1234567890-private.pem.key',
+                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'F02S'},
-                   'F08M' : {'private_key' : 'Security/a890123456-private.pem.key',
-                             'cert_file' : 'Security/a890123456-certificate.pem.crt',
+                   'F08M' : {'private_key' : 'Security/1234567890-private.pem.key',
+                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'F08M'},
-                   'G02N' : {'private_key' : 'Security/-private.pem.key',
-                             'cert_file' : 'Security/-certificate.pem.crt',
+                   'G02N' : {'private_key' : 'Security/1234567890-private.pem.key',
+                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
-                             'handler' : 'shadow-not-configured-yet'},
-                   'G02S' : {'private_key' : 'Security/-private.pem.key',
-                             'cert_file' : 'Security/-certificate.pem.crt',
+                             'handler' : 'G02N'},
+                   'G02S' : {'private_key' : 'Security/1234567890-private.pem.key',
+                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
-                             'handler' : 'shadow-not-configured-yet'},
-                   'G08M' : {'private_key' : 'Security/-private.pem.key',
-                             'cert_file' : 'Security/-certificate.pem.crt',
+                             'handler' : 'G02S'},
+                   'G08M' : {'private_key' : 'Security/1234567890-private.pem.key',
+                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
-                             'handler' : 'shadow-not-configured-yet'}}
+                             'handler' : 'G08M'}}
 
 JOB                 = 'pull_data'
 ERROR               = 1
@@ -199,10 +199,9 @@ def _write_logs_to_databases():
   """
   try:
     dynamo_db_access = boto3.resource('dynamodb')
-
     if(error_messages):
       try:
-        table = dynamo_db_access.Table('table_name_3')
+        table = dynamo_db_access.Table('VinStationsBackEndIssues')
         for key, value in error_messages.items():
           table.put_item(Item={'date' : value['date'], 
                                'stamp_job' : key,
@@ -211,7 +210,7 @@ def _write_logs_to_databases():
         pass  #where do you log when logging doesn't work?
     if(info_messages):
       try:
-        table = dynamo_db_access.Table('table_name_4')
+        table = dynamo_db_access.Table('VinStationsBackEndInfo')
         for key, value in info_messages.items():
           table.put_item(Item={'date': value['date'],
                                'stamp_job' : key, 
@@ -412,7 +411,7 @@ def _get_device_shadow_client(location):
   if(location in device_shadows):
     a_device_shadow = device_shadows[location]
   else:
-    a_client = AWSIoTMQTTShadowClient(MQTT_VALUES['shadow_client'])
+    a_client = AWSIoTMQTTShadowClient(location)
     a_client.configureEndpoint(MQTT_VALUES['host_name'], 
                                MQTT_VALUES['mqtt_port'])
     a_client.configureCredentials(SHADOW_SECURITY[location]['root_ca'],
@@ -422,8 +421,8 @@ def _get_device_shadow_client(location):
     a_client.configureMQTTOperationTimeout(5)
     
     if(not a_client.connect()):
-      _log_message('15', ERROR, 'Could not connect to the IoT Core shadow ' +
-        'document for the ' + location + ' vineyard sensor station.', '')
+      _log_message('15', ERROR, 'Could not connect to shadow document' +
+                   ' for location: ' + location, '')
     else:
       a_device_shadow = a_client.createShadowHandlerWithName(
                           SHADOW_SECURITY[location]['handler'], True)
@@ -462,16 +461,21 @@ def _update_shadow_document(location, update):
       update_string = '{"state":{"reported":'
       update_string += json.dumps(update)
       update_string += '}}'
-      
-      #asynch call; IoT provides results by calling _my_shadow_update_callback()
-      a_device_shadow.shadowUpdate(update_string, _my_shadow_update_callback, 5)  
+       
+      try:
+        #asynch call; IoT provides results by calling _my_shadow_update_callback()
+        a_device_shadow.shadowUpdate(update_string, _my_shadow_update_callback, 5)
+      except Exception as e:
+        _log_message('35', ERROR, 'Exception thrown updating shadow: ' + 
+                     location + '. ', e)
     else:
       result = False
-      _log_message('16', ERROR, 'Could not obtain a device shadow client', '')
+      _log_message('16', ERROR, 'Could not obtain a device shadow client ' +
+                   'for location: ' + location, '')
   else:
     result = False
     _log_message('17', ERROR, 'Security credentials havent yet been ' +
-                 'provisioned for station ' + location + ' shadow document.', '')
+                 'provisioned for location: ' + location, '')
   return(result)
    
    
@@ -494,16 +498,14 @@ def _my_shadow_update_callback(payload, response_status, token):
                       payload
   """
   if(response_status != 'accepted'): 
-    _log_message('18', ERROR, 'Asynchronous return from an IoT shadow ' +
-                 ' document update indicates update was rejected.', '')  
-
-
+    _log_message('18', ERROR, 'The IoT Core service returned a value on ' +
+                 'a shadow document update indicating failure.', '')  
 
 
 def _process_sensor_record(record):
   """ 
   Convert an individual raw sensor data record into a format consistant
-  with the DynamoDB table table_name_1.  Each vineyard sensor 
+  with the DynamoDB table VinStationsData.  Each vineyard sensor 
   station has its own IoT Core shadow document and its own MQTT queue.
   The UTC date/time value supplied by Internet Endppoint is translated 
   to US Central Time Zone timestamp.
@@ -544,10 +546,10 @@ def _process_sensor_record(record):
       result = _update_shadow_document(location, update)
     else:
       _log_message('19', ERROR, 'New raw sensor data record received with '
-                   + 'invalid station location of: ' + location, '')
+                   + 'invalid station location of: ' + location, '')    
   except Exception as e:
-    print('the exception is: ' + e)
-    _log_message('31', ERROR, '', e)   
+    _log_message('31', ERROR, 'Exception thrown updating shadow for: ' 
+                 + location + '. ', e)  
   return(result)
 
 
