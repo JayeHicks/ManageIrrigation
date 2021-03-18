@@ -1,26 +1,15 @@
-""" 
-Jaye Hicks 2020
-
-Obligatory legal disclaimer:
-  You are free to use this source code (this file and all other files 
-  referenced in this file) "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER 
-  EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. 
-  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THIS SOURCE CODE
-  IS WITH YOU.  SHOULD THE SOURCE CODE PROVE DEFECTIVE, YOU ASSUME THE
-  COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION. See the GNU 
-  GENERAL PUBLIC LICENSE Version 3, 29 June 2007 for more details.
-  
+"""
+ver: 2021-03-18
 This module serves as an AWS Lambda function intended to be invoked (on
 a scheduled, regular basis) by a CloudWatch Events Rule in order to 
 archive raw sensor data.  Raw sensor data housed in the DynamoDB table 
-table_name_1 that has aged beyond the designated age threshold is
+my-data-table that has aged beyond the designated age threshold is
 archived into files placed in the S3 bucket
-'bucket_name.'  
+'my-archive-bucket.'  
 
 Lonesome Vine Vineyard operates a maximum of 21 sensors stations.  On a 
 monthly basis the maximum number of DynamoDB Items that could be added
-to the DynamoDB table table_name_1 is 15,624 (21 stations x 24 sensor
+to the DynamoDB table my-data-table is 15,624 (21 stations x 24 sensor
 station reports per station per day x 31 days).  An upper bound estimate
 of 70 bytes per single sensor station report yields 1,093,680 bytes of 
 total raw sensor data per month.
@@ -33,7 +22,7 @@ configured at the default settings of 5 read capacity units and 5 write
 capacity units.  To address the throttling issue the table was modified 
 from default capacity settings to 'on-demand' read/write capacity.
 
-The DynamoDB table table_name_2 contains raw vineyard sensor data 
+The DynamoDB table my-data-table contains raw vineyard sensor data 
 across all vineyard sensor stations reporting data (either in an 
 online status or in an offline status).  A separate Python module is 
 responsible for deleting raw data that has been archived by this module.
@@ -41,7 +30,7 @@ responsible for deleting raw data that has been archived by this module.
 If this module finds raw sensor data for a given calendar month that has
 not yet been archived, it will archive that data into a CSV file,  
 placing that file into the S3 archival bucket 
-'bucket_name.'  A single CSV file will archive raw 
+'my-archive-bucket.'  A single CSV file will archive raw 
 sensor data across all sensors stations for a given calendar month.  
 Archive files are named using an exacting naming standard that encodes 
 the year and month within the file name.  This module wil not overwrite 
@@ -75,17 +64,16 @@ import csv
 import boto3
 import time
 from boto3.dynamodb.conditions import Key
-from botocore.exceptions import ClientError
-from dateutil.relativedelta import * 
-from io import StringIO, BytesIO
-from datetime import datetime, timedelta
+from botocore.exceptions       import ClientError
+from dateutil.relativedelta    import * 
+from io                        import StringIO, BytesIO
+from datetime                  import datetime, timedelta
           
-YEAR_MONTH_PRIOR_TO_OLDEST_RAW_DATA = '2020-01'    
-#YEAR_MONTH_PRIOR_TO_OLDEST_RAW_DATA = '2019-07'     #debug only
-RAW_DATA_TABLE                      = 'table_name_1'
-STATIONS_PER_ARCHIVE_TABLE          = 'table_name_2'
-ARCHIVE_AFTER_THIS_MANY_MONTHS      = 1                  # must be integer > 0
-ARCHIVAL_BUCKET_NAME                = 'bucket_name'
+RAW_DATA_TABLE             = 'my-data-table'
+STATIONS_PER_ARCHIVE_TABLE = 'my-archive-table'
+MONTHS_BACK_LIMIT          = 12 #how months back to go back
+OLDEST_ARCHIVE             = '2020-03'
+ARCHIVAL_BUCKET_NAME       = 'my-archive-bucket'
 
 JOB                 = 'archive_data'
 ERROR               = 1
@@ -105,10 +93,10 @@ def _write_logs_to_databases():
   Due to low volume, a batch writer to insert messages not needed.
   """
   try:
-    dynamo_db_access = boto3.resource('dynamodb') 
+    dynamo_db_access = boto3.resource('dynamodb')
     if(error_messages):
       try:
-        table = dynamo_db_access.Table('table_name_3')
+        table = dynamo_db_access.Table('my-issues-table')
         for key, value in error_messages.items():
           table.put_item(Item={'date' : value['date'], 
                                'stamp_job' : key,
@@ -117,7 +105,7 @@ def _write_logs_to_databases():
         pass  #where do you log when logging doesn't work?
     if(info_messages):
       try:
-        table = dynamo_db_access.Table('table_name_4')
+        table = dynamo_db_access.Table('my-info-table')
         for key, value in info_messages.items():
           table.put_item(Item={'date': value['date'],
                                'stamp_job' : key, 
@@ -170,7 +158,7 @@ def archive_data(event, context):
   """
   Archive sensor data for a given year-month, across all sensors, to
   a single file (strict naming standard that encodes year-month) to
-  the S3 bucket 'lv-vineyard-stations-archive.'  Any preexisting S3 
+  the S3 bucket 'my-archive-bucket.'  Any preexisting S3 
   files will be preserved; not overwritten.
   
   Note: the non existance of expected archive file is detected by 
@@ -191,7 +179,7 @@ def archive_data(event, context):
     s3_access_client.head_bucket(Bucket=ARCHIVAL_BUCKET_NAME)
     file_names = _all_possible_archive_file_names()
     try:
-      s3_access_resource = boto3.resource('s3')
+      s3_access_resource = boto3.resource('s3')      
       for a_file in file_names:
         try:
           s3_access_resource.Object(ARCHIVAL_BUCKET_NAME, a_file).load()
@@ -225,8 +213,7 @@ def archive_data(event, context):
       'Archive Data process did not complete successfully.', '')
   else:
     _log_message('6', INFO, 
-      'Archive Data process completed successfully.', '')
-    
+      'Archive Data process completed successfully.', '') 
   _write_logs_to_databases()
 
 
@@ -251,7 +238,7 @@ def _archive_raw_sensor_data(new_file):
   """
   Retrieve all sensor data, across all sensors, that falls within the
   year-month specified by the paramater and arhive off to a file in
-  the S3 bucket 'lv-vineyard-stations-archive.'  The csv archival file
+  the S3 bucket 'my-archive-bucket.'  The csv archival file
   named using a strict naming standard encoding year-month of data.
   """
   result = True
@@ -303,6 +290,7 @@ def _archive_raw_sensor_data(new_file):
             page_to_process = False
             
         if(result and items_archived):
+          
           if(locations_reporting_this_month):
             _record_num_stations_in_archive_file(new_file, 
               len(locations_reporting_this_month))
@@ -313,7 +301,8 @@ def _archive_raw_sensor_data(new_file):
                                  Body=encoded_data)
           except Exception as e:
             result = False
-            _log_message('10', ERROR, '', e)            
+            _log_message('10', ERROR, '', e)
+            
     except Exception as e:
       result = False
       _log_message('11', ERROR, '', e)
@@ -328,22 +317,21 @@ def _archive_raw_sensor_data(new_file):
 
 def _all_possible_archive_file_names():
   """
-  Create a list of all object names (i.e., file names) that should
-  exist in the S3 archive bucket named 'bucke_name'
+  Create a list of all object names (i.e., files containing archived raw
+  sensor data) that should exist in the S3 archive bucket named
+  'my-archive-bucket'.  Archive files created using strict
+  naming conventions.  The '>1' in while statement keeps the current
+  an previous months from being considered for archival.
   """
   file_names = []
   CURRENT_DATE_TIME = datetime.now()
-  backward_month_counter = ARCHIVE_AFTER_THIS_MANY_MONTHS
-
-  while(backward_month_counter):
-    prior_date_time = (CURRENT_DATE_TIME - 
-      relativedelta(months=backward_month_counter))
+  month_counter = MONTHS_BACK_LIMIT
+  
+  while(month_counter > 1):
+    prior_date_time = (CURRENT_DATE_TIME - relativedelta(months=month_counter))
     year_month = (str(prior_date_time.year) + '-' + 
       str(prior_date_time.month).zfill(2))
-    if(year_month == YEAR_MONTH_PRIOR_TO_OLDEST_RAW_DATA):
-      backward_month_counter = 0
-      break
-    else:                        
+    if(year_month >= OLDEST_ARCHIVE):      
       file_names.append(year_month +  '-VineyardStations.csv')
-      backward_month_counter += 1
+    month_counter -= 1
   return(file_names)

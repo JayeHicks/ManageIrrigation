@@ -1,25 +1,14 @@
-""" 
-Jaye Hicks 2020
-
-Obligatory legal disclaimer:
-  You are free to use this source code (this file and all other files 
-  referenced in this file) "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER 
-  EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. 
-  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THIS SOURCE CODE
-  IS WITH YOU.  SHOULD THE SOURCE CODE PROVE DEFECTIVE, YOU ASSUME THE
-  COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION. See the GNU 
-  GENERAL PUBLIC LICENSE Version 3, 29 June 2007 for more details.
-  
+"""
+ver: 2021-03-18
 This module serves as an AWS Lambda function intended to be invoked (on
 a scheduled, regular basis) by a CloudWatch Events Rule in order to 
-delete raw sensor data housed in a DynamoDB table table_name_1.  
+delete raw sensor data housed in a DynamoDB table VinStationsData.  
 Specifically, data that has aged beyond the defined age threhold will
 be deleted. 
 
 Lonesome Vine Vineyard operates a maximum of 21 sensors stations.  On a 
 monthly basis the maximum number of DynamoDB Items that could be added
-to the DynamoDB table table_name_1 is 15,624 (21 stations x 24 sensor
+to the DynamoDB table VinStationsData is 15,624 (21 stations x 24 sensor
 station reports per station per day x 31 days).  An upper bound estimate
 of 70 bytes per single sensor station report yields 1,093,680 bytes of 
 total raw sensor data per month.
@@ -65,15 +54,13 @@ Dependencies:
 import boto3
 import time
 from boto3.dynamodb.conditions import Key
-from botocore.exceptions import ClientError
-from dateutil.relativedelta import * 
-from datetime import datetime, timedelta
+from botocore.exceptions       import ClientError
+from dateutil.relativedelta    import * 
+from datetime                  import datetime, timedelta
 
-ARCHIVAL_BUCKET_NAME           = 'bucket_name'
-RAW_DATA_TABLE                 = 'table_name_1'
-MONTH_PRIOR_TO_OLDEST_RAW_DATA = '2020-01'
-#MONTH_PRIOR_TO_OLDEST_RAW_DATA = '2019-07'  #debug setting only         
-AGE_LIMIT                      = 3 #delete raw sensor data 3+ months old
+ARCHIVAL_BUCKET_NAME           = 'my-bucket'
+RAW_DATA_TABLE                 = 'my-dynamodb-table'       
+MONTHS_BACK_LIMIT              = 12 #how months back to go back
 
 JOB                 = 'delete_data'
 ERROR               = 1
@@ -96,7 +83,7 @@ def _write_logs_to_databases():
     dynamo_db_access = boto3.resource('dynamodb')
     if(error_messages):
       try:
-        table = dynamo_db_access.Table('table_name_2')
+        table = dynamo_db_access.Table('my-issues')
         for key, value in error_messages.items():
           table.put_item(Item={'date' : value['date'], 
                                'stamp_job' : key,
@@ -105,7 +92,7 @@ def _write_logs_to_databases():
         pass  #where do you log when logging doesn't work?
     if(info_messages):
       try:
-        table = dynamo_db_access.Table('table_name_3')
+        table = dynamo_db_access.Table('my-info')
         for key, value in info_messages.items():
           table.put_item(Item={'date': value['date'],
                                'stamp_job' : key, 
@@ -203,8 +190,8 @@ def delete_data(event, context):
   global info_messages
   info_messages  = {}
   
-  delete_dates = _all_possible_dates_to_delete()
-
+  delete_dates = _all_possible_months_to_delete() 
+  
   try:
     dynamo_db_access = boto3.resource('dynamodb')
     table = dynamo_db_access.Table(RAW_DATA_TABLE)
@@ -218,7 +205,7 @@ def delete_data(event, context):
           else:
             _log_message('1', WARN, 'Stopped deletion of raw sensor data ' +
               'records belonging to "' + date + '" because they have not yet' +
-              ' been archived.', '')            
+              ' been archived.', '')           
       except Exception as e:
         _log_message('2', ERROR, '', e)
   except Exception as e:
@@ -228,22 +215,21 @@ def delete_data(event, context):
     _log_message('4', WARN, 
       'Delete Data process did not complete successfully.', '') 
   else:
-    _log_message('5', INFO, 'Delete Data process completed successfully.', '') 
-    
+    _log_message('5', INFO, 'delete_data process completed successfully.', '')  
   _write_logs_to_databases()
  
 
 def _delete_items(date, response):
   """
   Delete all Items from Table with parition key == to parameter 'date'
-  For example, delete all Items from DynamoDB table x
+  For example, delete all Items from DynamoDB table VinStationsData
   where the Item's attribute 'date' (i.e., the partition key) is ==
   to a specific 'year-mo' (e.g., '2020-08')
   """
   result = True
   page_to_process = True
   items_deleted = 0
-          
+  
   try:
     dynamo_db_access = boto3.resource('dynamodb')
     table = dynamo_db_access.Table(RAW_DATA_TABLE)
@@ -256,14 +242,14 @@ def _delete_items(date, response):
             items_deleted += 1
           except Exception as e:
             result = False
-            _log_message('6', ERROR, '', e)   
+            _log_message('6', ERROR, '', e)
             break
         #if response has multiple pages, process them all
         if('LastEvaluatedKey' in response):
           try:
             response = table.query(
               KeyConditionExpression=Key('date').eq(date),
-              ExclusiveStartKey=response['LastEvaluatedKey'])            
+              ExclusiveStartKey=response['LastEvaluatedKey'])               
           except Exception as e:
             result = False
             page_to_process = False
@@ -282,25 +268,21 @@ def _delete_items(date, response):
   return(result)
  
   
-def _all_possible_dates_to_delete():
+def _all_possible_months_to_delete():
   """
-  Create a list of year-month values (e.g., ['2020-01', '2019-12']) for 
-  all months that are past age limit.  Create last that goes back in
-  time up until the oldest possible raw data sensor records.  
+  Create a list of year-month values (e.g., ['2019-12', '2020-01']) from the
+  limit of how many months to go back till two months from present.  The '>1' 
+  in while loop keeps the current month and prior month off of the list.
   """
-  delete_dates = []
+  months_to_delete = []
   CURRENT_DATE_TIME = datetime.now()
-  backward_month_counter = AGE_LIMIT
-
-  while(backward_month_counter):
-    prior_date_time = (CURRENT_DATE_TIME - 
-      relativedelta(months=backward_month_counter))
+  month_counter = MONTHS_BACK_LIMIT
+  
+  while(month_counter > 1):
+    prior_date_time = (CURRENT_DATE_TIME - relativedelta(months=month_counter))
     year_month = (str(prior_date_time.year) + '-' + 
-      str(prior_date_time.month).zfill(2))
-    if(year_month == MONTH_PRIOR_TO_OLDEST_RAW_DATA):
-      backward_month_counter = 0
-      break
-    else:                        
-      delete_dates.append(year_month)
-      backward_month_counter += 1
-  return(delete_dates)
+      str(prior_date_time.month).zfill(2))              
+    months_to_delete.append(year_month)
+    month_counter -= 1
+  return(months_to_delete)
+ 

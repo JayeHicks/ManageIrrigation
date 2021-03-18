@@ -1,16 +1,5 @@
 """ 
-Jaye Hicks 2020 
-
-Obligatory legal disclaimer:
-  You are free to use this source code (this file and all other files 
-  referenced in this file) "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER 
-  EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. 
-  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THIS SOURCE CODE
-  IS WITH YOU.  SHOULD THE SOURCE CODE PROVE DEFECTIVE, YOU ASSUME THE
-  COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION. See the GNU 
-  GENERAL PUBLIC LICENSE Version 3, 29 June 2007 for more details.
-  
+ver: 2021-03-18
 This module serves as an AWS Lambda function intended to be invoked on
 a regular scheduled basis by a CloudWatch Events rule in order to 
 detect missing archived vineyard sensor station files as well as
@@ -21,7 +10,7 @@ archival files located.  archive-check functionality relies on
 solution-wide adherance to a strict naming standard for the CSV 
 archival files.  These archival files contain raw vineyard sensor 
 data, across all 21 stations, bundled up in calendar monthly increments
-and reside in the S3 bucket named 'bucket_name.'  
+and reside in the S3 bucket named 'my-archive-bucket.'  
 This module will not send alerts; it will log a WARN informational
 logging message if it unconvers anything suspect.
 
@@ -56,13 +45,12 @@ from boto3.dynamodb.conditions import Key
 from dateutil.relativedelta import * 
 from datetime import datetime, timedelta
 
-ARCHIVE_AFTER_THIS_MANY_MONTHS     = 1  # must be integer > 0
-ARCHIVAL_BUCKET_NAME               = 'bucket_name'
-CONTROL_TABLE                      = 'table_name_1'
-STATIONS_PER_ARCHIVE_TABLE         = 'table_name_2'
-CONTROL_ITEM_SELECT                = '2'
-YEAR_MONTH_PRIOR_TO_OLDEST_RAW_DATA = '2020-01'
-#YEAR_MONTH_PRIOR_TO_OLDEST_RAW_DATA = '2019-08'   #debug only 
+ARCHIVAL_BUCKET_NAME       = 'my-archive-bucket'
+CONTROL_TABLE              = 'my-control-table'
+STATIONS_PER_ARCHIVE_TABLE = 'my-archive-table'
+CONTROL_ITEM_SELECT        = '2'
+MONTHS_BACK_LIMIT          = 12 #how months back to go back
+OLDEST_ARCHIVE             = '2020-03'
 
 JOB                 = 'archive_check'
 ERROR               = 1
@@ -85,7 +73,7 @@ def _write_logs_to_databases():
     dynamo_db_access = boto3.resource('dynamodb')
     if(error_messages):
       try:
-        table = dynamo_db_access.Table('table_name_3')
+        table = dynamo_db_access.Table('my-issues-table')
         for key, value in error_messages.items():
           table.put_item(Item={'date' : value['date'], 
                                'stamp_job' : key,
@@ -94,7 +82,7 @@ def _write_logs_to_databases():
         pass  #where do you log when logging doesn't work?
     if(info_messages):
       try:
-        table = dynamo_db_access.Table('table_name_4')
+        table = dynamo_db_access.Table('my-info-table')
         for key, value in info_messages.items():
           table.put_item(Item={'date': value['date'],
                                'stamp_job' : key, 
@@ -173,7 +161,7 @@ def _archive_file_is_small(file, size, threshold):
   return(result)
 
  
-def archive_check(event, context): 
+def archive_check(event, context):
   """
   Look across into the S3 archival bucket and generate a list of all
   missing archive files and a list of all archive files that appear 
@@ -269,28 +257,25 @@ def archive_check(event, context):
   else:
     _log_message('15', INFO, 
       'Archive Check process completed successfully.', '')
-    
   _write_logs_to_databases()  
 
-  
 def _all_possible_archive_file_names():
   """
-  Create a list of all object names (i.e., file names) that should
-  exist in the S3 archive bucket named 'bucket_name'
+  Create a list of all object names (i.e., files containing archived raw
+  sensor data) that should exist in the S3 archive bucket named
+  'my-archive-bucket'.  Archive files created using strict
+  naming conventions.  The '>1' in while statement keeps the current
+  an previous months from being included in the list.
   """
   file_names = []
   CURRENT_DATE_TIME = datetime.now()
-  backward_month_counter = ARCHIVE_AFTER_THIS_MANY_MONTHS
-
-  while(backward_month_counter):
-    prior_date_time = (CURRENT_DATE_TIME - 
-      relativedelta(months=backward_month_counter))
+  month_counter = MONTHS_BACK_LIMIT
+  
+  while(month_counter > 1):
+    prior_date_time = (CURRENT_DATE_TIME - relativedelta(months=month_counter))
     year_month = (str(prior_date_time.year) + '-' + 
       str(prior_date_time.month).zfill(2))
-    if(year_month == YEAR_MONTH_PRIOR_TO_OLDEST_RAW_DATA):
-      backward_month_counter = 0
-      break
-    else:                        
+    if(year_month >= OLDEST_ARCHIVE):      
       file_names.append(year_month +  '-VineyardStations.csv')
-      backward_month_counter += 1
+    month_counter -= 1
   return(file_names)
