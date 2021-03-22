@@ -1,5 +1,16 @@
 """
+Jaye Hicks
 ver: 2021-03-18
+Obligatory legal disclaimer:
+  You are free to use this source code (this file and all other files 
+  referenced in this file) "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER 
+  EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. 
+  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THIS SOURCE CODE
+  IS WITH YOU.  SHOULD THE SOURCE CODE PROVE DEFECTIVE, YOU ASSUME THE
+  COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION. See the GNU 
+  GENERAL PUBLIC LICENSE Version 3, 29 June 2007 for more details.
+  
 This module serves as an AWS Lambda function intended to be invoked (on
 a scheduled, regular basis) by a CloudWatch Events Rule in order to 
 delete raw sensor data housed in a DynamoDB table VinStationsData.  
