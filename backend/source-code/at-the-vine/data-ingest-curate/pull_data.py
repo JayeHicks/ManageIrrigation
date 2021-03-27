@@ -1,6 +1,5 @@
 """ 
-Jaye Hicks 2020
-
+Jaye Hicks
 Obligatory legal disclaimer:
   You are free to use this source code (this file and all other files 
   referenced in this file) "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER 
@@ -10,7 +9,7 @@ Obligatory legal disclaimer:
   IS WITH YOU.  SHOULD THE SOURCE CODE PROVE DEFECTIVE, YOU ASSUME THE
   COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION. See the GNU 
   GENERAL PUBLIC LICENSE Version 3, 29 June 2007 for more details.
-
+  
 Overall, sensor data flows from vineyard sensor stations to 
 www.thingspeak.com to the AWS backend. This module is responsible for
 pulling data from www.thingspeak.com and kicking off the data's
@@ -26,10 +25,15 @@ end point, that have arrived within MINS_BACWARD minutes in the past,
 and ingest them into the AWS backend.  Updating IoT Core shadow
 documents, via na MQTT queue, is the ingress point for this ingestion.
 
-All functions contained in this module write log messages.  However, 
-the _recent_activity_check() function is capable of raising an alarm
-if it detects that no sensor data ingestion has occured within the
-last NO_UPDATE_THRESHOLD minutes.
+A custom system logging class was created to capture system logging
+messages generated while this module executes.  At the conclusion of
+this module's execution the system logging object writes all of the
+system logging messages to DynamoDB tables.  Because this module
+executes as an AWS Lambda function, and the Lambda retains containers
+for a short period of time after the function exits (in hopes of 
+reusing the container for a future call of the same function), it is
+necessary to reset/clear the system logging object at the beginning
+of this module's execution.
 
 Vineyard sensor stations report once an hour.  Due to how quickly 
 real world conditions can deteriorate (e.g., Freeze Guard), this 
@@ -44,11 +48,11 @@ Python module should be executed every 15 minutes.
     import boto3
     import urllib.request
     import json
-    import time
-    from datetime import datetime, timedelta
-    from calendar import timegm
-    from boto3.dynamodb.conditions import Key
-    from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
+    from   datetime                  import datetime, timedelta
+    from   boto3.dynamodb.conditions import Key
+    from   AWSIoTPythonSDK.MQTTLib   import AWSIoTMQTTShadowClient
+    import sys_log
+    import send_alerts
     
   Security Requirements beyond assigning the appropirate IAM role.
     This module needs to be able to push MQTT messages on a queue
@@ -66,26 +70,24 @@ Python module should be executed every 15 minutes.
 import boto3
 import urllib.request
 import json
-import time
-from datetime import datetime, timedelta
-from boto3.dynamodb.conditions import Key
-from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
+from   datetime                  import datetime, timedelta
+from   boto3.dynamodb.conditions import Key
+from   AWSIoTPythonSDK.MQTTLib   import AWSIoTMQTTShadowClient
 
-STATUS_TABLE         = 'VinStationsStatus'
-CONTROL_TABLE        = 'VinStationsControl'
+import sys_log
+import send_alerts
+
+STATUS_TABLE         = 'ADynamoDBTable1'
+CONTROL_TABLE        = 'ADynamoDBTable2'
 CONTROL_ITEM_SELECT  = '2'
 
-SNS_TOPIC_ARN        = 'arn:aws:sns:us-east-1:123456789012:Vineyard-Alerts'
+SNS_TOPIC_ARN        = 'arn:aws:sns:us-east-1:123456789012:My-Alert'
 
-COMMON_ENDPOINT       = 'https://api.thingspeak.com/channels/'
-#API_KEY               = '1234567890123456'   #debug; this is for POC
-#CHANNEL_ID            = '1234567'            #debug; this is for POC
-#MINS_BACKWARD         = '600'                #debug; this is for POC
-API_KEY               = '1234567890123456'   #production
-CHANNEL_ID            = '1234567'            #production
-MINS_BACKWARD         = '30'                 #production
-
-                           
+COMMON_ENDPOINT      = 'https://api.thingspeak.com/channels/'
+API_KEY              = '12345678901234567'   #production
+CHANNEL_ID           = '1234567'            #production
+MINS_BACKWARD        = '30'                 #production
+                 
 device_shadows = {} #explained in header comments of _get_device_shadow_client()
        
 LOCATIONS    = ['A02N', 'A08M', 'A02S', 'B02N', 'B08M', 'B02S', 'C02N',
@@ -95,168 +97,94 @@ LOCATIONS    = ['A02N', 'A08M', 'A02S', 'B02N', 'B08M', 'B02S', 'C02N',
 MQTT_VALUES = {'host_name' : '12345678901234-ats.iot.us-east-1.amazonaws.com',
                'mqtt_port' : 8883}
 
-SHADOW_SECURITY = {'A02N' : {'private_key' : 'Security/1234567890-private.pem.key',
-                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+SHADOW_SECURITY = {'A02N' : {'private_key' : 'a-key-private.pem.key',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'A02N'},                             
-                   'A02S' : {'private_key' : 'Security/1234567890-private.pem.key',
-                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+                   'A02S' : {'private_key' : 'a-key-private.pem.key',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'A02S'}, 
-                   'A08M' : {'private_key' : 'Security/1234567890-private.pem.key',
-                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+                   'A08M' : {'private_key' : 'a-key-private.pem.key',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'A08M'},
-                   'B02N' : {'private_key' : 'Security/1234567890-private.pem.key',
-                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+                   'B02N' : {'private_key' : 'a-key-private.pem.key',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'B02N'},
-                   'B02S' : {'private_key' : 'Security/1234567890-private.pem.key',
-                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+                   'B02S' : {'private_key' : 'a-key-private.pem.key',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'B02S'},
-                   'B08M' : {'private_key' : 'Security/1234567890-private.pem.key',
-                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+                   'B08M' : {'private_key' : 'a-key-private.pem.key',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'B08M'},
-                   'C02N' : {'private_key' : 'Security/1234567890-private.pem.key',
-                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+                   'C02N' : {'private_key' : 'a-key-private.pem.key',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'C02N'},
-                   'C02S' : {'private_key' : 'Security/1234567890-private.pem.key',
-                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+                   'C02S' : {'private_key' : 'a-key-private.pem.key',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'C02S'},
-                   'C08M' : {'private_key' : 'Security/1234567890-private.pem.key',
-                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+                   'C08M' : {'private_key' : 'a-key-private.pem.key',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'C08M'},
-                   'D02N' : {'private_key' : 'Security/1234567890-private.pem.key',
-                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+                   'D02N' : {'private_key' : 'a-key-private.pem.key',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'D02N'},
-                   'D02S' : {'private_key' : 'Security/c5827c4737-private.pem.key',
-                             'cert_file' : 'Security/c5827c4737-certificate.pem.crt',
+                   'D02S' : {'private_key' : 'a-key-private.pem.key'',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'D02S'},
-                   'D08M' : {'private_key' : 'Security/1234567890-private.pem.key',
-                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+                   'D08M' : {'private_key' : 'a-key-private.pem.key',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'D08M'},
-                   'E02N' : {'private_key' : 'Security/1234567890-private.pem.key',
-                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+                   'E02N' : {'private_key' : 'a-key-private.pem.key',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'E02N'},
-                   'E02S' : {'private_key' : 'Security/1234567890-private.pem.key',
-                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+                   'E02S' : {'private_key' : 'a-key-private.pem.key',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'E02S'},
-                   'E08M' : {'private_key' : 'Security/43ec29e709-private.pem.key',
-                             'cert_file' : 'Security/43ec29e709-certificate.pem.crt',
+                   'E08M' : {'private_key' : 'a-key-private.pem.key'',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'E08M'},
-                   'F02N' : {'private_key' : 'Security/1234567890-private.pem.key',
-                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+                   'F02N' : {'private_key' : 'a-key-private.pem.key',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'F02N'},
-                   'F02S' : {'private_key' : 'Security/1234567890-private.pem.key',
-                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+                   'F02S' : {'private_key' : 'a-key-private.pem.key',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'F02S'},
-                   'F08M' : {'private_key' : 'Security/1234567890-private.pem.key',
-                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+                   'F08M' : {'private_key' : 'a-key-private.pem.key',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'F08M'},
-                   'G02N' : {'private_key' : 'Security/1234567890-private.pem.key',
-                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+                   'G02N' : {'private_key' : 'a-key-private.pem.key',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'G02N'},
-                   'G02S' : {'private_key' : 'Security/1234567890-private.pem.key',
-                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+                   'G02S' : {'private_key' : 'a-key-private.pem.key',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'G02S'},
-                   'G08M' : {'private_key' : 'Security/1234567890-private.pem.key',
-                             'cert_file' : 'Security/1234567890-certificate.pem.crt',
+                   'G08M' : {'private_key' : 'a-key-private.pem.key',
+                             'cert_file' : 'a-cert--certificate.pem.crt',
                              'root_ca' : 'Security/Amazon_root_CA_1.pem',
                              'handler' : 'G08M'}}
-
-JOB                 = 'pull_data'
-ERROR               = 1
-ALARM               = 2
-INFO                = 3
-WARN                = 4
-error_messages      = {}
-info_messages       = {}
-
-
-def _write_logs_to_databases():
-  """
-  As part of the backend management / processing of vineyard sensor 
-  stations raw data, messages are recorded to DynamoDB tables by the
-  various Python jobs that ingest and curate the data.  Informational
-  message have a TTL, error messages do not and require manual curation.
-  Due to low volume, a batch writer to insert messages not needed.
-  """
-  try:
-    dynamo_db_access = boto3.resource('dynamodb')
-    if(error_messages):
-      try:
-        table = dynamo_db_access.Table('VinStationsBackEndIssues')
-        for key, value in error_messages.items():
-          table.put_item(Item={'date' : value['date'], 
-                               'stamp_job' : key,
-                               'message': value['message']})
-      except:
-        pass  #where do you log when logging doesn't work?
-    if(info_messages):
-      try:
-        table = dynamo_db_access.Table('VinStationsBackEndInfo')
-        for key, value in info_messages.items():
-          table.put_item(Item={'date': value['date'],
-                               'stamp_job' : key, 
-                               'message': value['message'], 
-                               'expiry' : value['expiry']})
-      except:
-        pass #where do you log when logging doesn't work?
-  except:
-    pass #where do you log when logging doesn't work?
-  
-  
-def _log_message(position, type, message, exception):
-  """
-  As part of the backend management / processing of vineyard sensor 
-  stations raw data, messages are recorded to DynamoDB tables.  As
-  the epoch timestamp used is in seconds, vs milliseconds, the 1
-  second delay is used to avoid sort key clashes.  Wont be a performance
-  issue as this funciton is called infrequently.
-  
-  Note: 2038 epoch time roll over issue
-  """    
-  time.sleep(1)
-  now = datetime.now()
-  timestamp = int(now.timestamp()) #converts millisecons to seconds
-  cst = now - timedelta(hours=6)   #UTC to US Central Std
-  date = str(cst.year) + '-' + str(cst.month).zfill(2) + '-' 
-  date += str(cst.day).zfill(2)
-  stamp_job = str(timestamp) + '+' + JOB
-  prefix = ['','ERROR: (','ALARM: (','INFO: (','WARN: (']
-    
-  log_message = prefix[type] + position + ') ' + message + ' '  
-  if(exception):
-    try:
-      if(exception.response['Error']['Message']):
-        log_message += exception.response['Error']['Message']
-      else:
-        log_message += str(exception)
-    except:
-      log_message += str(exception)
-  
-  if((type == ERROR) or (type == ALARM)):
-    error_messages[stamp_job] = {'date' : date, 'message' : log_message}
-  else:
-    expiration = timestamp + 5184000   #DynamoDB autodelete in 2 months
-    info_messages[stamp_job] = {'date' : date, 'message' : log_message,
-                                'expiry' : expiration}
+                             
+#global object provides system logging to DynamoDB tables
+sl = sys_log.sys_log('pull_data','DynTableForInfo',
+                                 'DynTableForIssues','','')
 
 
 def _recent_activity_check():
@@ -290,30 +218,32 @@ def _recent_activity_check():
                   break
               if(not recent_activity):
                 message = (str(NO_UPDATE_THRESHOLD) + ' mins have elapsed ' +
-                  'with no vineyard sensor station reporting sensor data.')
-                _log_message('1', ALARM, message, '')              
+                           'with no vineyard sensor station reporting ' +
+                           'sensor data.')
+                sl.log_message('1', 'ALARM', message, '')              
                 _send_alert(message)                  
             else:
-              _log_message('2', ERROR, 
-                'Scan of DyanmoDB status table returned 0 Items.', '')
+              sl.log_message('2', ERROR, 'Scan of DyanmoDB status table ' +
+                             'returned 0 Items.', '')
           except Exception as e:
-            _log_message('3', ERROR, '', e)            
+            sl.log_message('3', ERROR, '', e)            
         except Exception as e:
-          _log_message('4', ERROR, '', e)   
+          sl.log_message('4', ERROR, '', e)   
       else:
-        _log_message('5', ERROR, ' Could not read control Item ' + 
-          CONTROL_ITEM_SELECT + ' from DynamoDB control table.', '')
+        sl.log_message('5', ERROR, ' Could not read control Item ' + 
+                       CONTROL_ITEM_SELECT + ' from DynamoDB control table.', 
+                       '')
     except Exception as e:
-      _log_message('6', ERROR, '', e)   
+      sl.log_message('6', ERROR, '', e)   
   except Exception as e:
-    _log_message('7', ERROR, '', e)
+    sl.log_message('7', ERROR, '', e)
       
-  if(error_messages):
-    _log_message('8', WARN, 'The _recent_activity_check() function raised ' +
-                 'an alarm or did not complete successfully.', '')
+  if(sl.error_messages):
+    sl.log_message('8', 'WARN', '_recent_activity_check() function raised ' +
+                   'an alarm or did not complete successfully.', '')
   else:
-    _log_message('9', INFO, 'The _recent_activity_check() function completed' +
-      ' successfully.', '')
+    sl.log_message('9', 'INFO', '_recent_activity_check() function completed' +
+                   ' successfully.', '')
 
 
 def _get_id_ts_of_last_record_processed():
@@ -349,12 +279,13 @@ def _get_id_ts_of_last_record_processed():
         last_id = response['Items'][0]['last_id_processed']
         last_ts = response['Items'][0]['last_ts_processed']
       else:
-        _log_message('10', ERROR, 'Could not read control Item ' + 
-                     CONTROL_ITEM_SELECT + ' from DynamoDB control table.', '')
+        sl.log_message('10', ERROR, 'Could not read control Item ' + 
+                       CONTROL_ITEM_SELECT + ' from DynamoDB control table.', 
+                       '')
     except Exception as e:
-      _log_message('11', ERROR, '', e)
+      sl.log_message('11', ERROR, '', e)
   except Exception as e:
-    _log_message('12', ERROR, '', e)  
+    sl.log_message('12', ERROR, '', e)  
   return(last_id, last_ts)
 
 
@@ -382,9 +313,9 @@ def _set_id_ts_of_last_record_processed(last_record_id, last_record_ts):
                         ExpressionAttributeValues={':li' : last_record_id,
                                                    ':lt' : last_record_ts}) 
     except Exception as e:
-      _log_message('13', ERROR, '', e)    
+      sl.log_message('13', ERROR, '', e)    
   except Exception as e:
-    _log_message('14', ERROR, '', e)
+    sl.log_message('14', ERROR, '', e)
    
   
 def _get_device_shadow_client(location):
@@ -421,8 +352,8 @@ def _get_device_shadow_client(location):
     a_client.configureMQTTOperationTimeout(5)
     
     if(not a_client.connect()):
-      _log_message('15', ERROR, 'Could not connect to shadow document' +
-                   ' for location: ' + location, '')
+      sl.log_message('15', ERROR, 'Could not connect to shadow document' +
+                     ' for location: ' + location, '')
     else:
       a_device_shadow = a_client.createShadowHandlerWithName(
                           SHADOW_SECURITY[location]['handler'], True)
@@ -434,8 +365,8 @@ def _update_shadow_document(location, update):
   """
   Each vineyard sensor station is set up in IoT Core as a 'thing' with
   its own 'shadow document.'  In order to push data into AWS, for a 
-  sensor, you update its shadow document.  AWS service-to-service-to-
-  service integrations propogate new sensor data DynamoDB tables and 
+  sensor, you update its shadow document.  AWS service-to-service 
+  integrations propogate new sensor data DynamoDB tables and 
   to CloudWatch custom metrics.
   
   The shadowUpdate() call in this function is asynchronous.  Processing
@@ -463,19 +394,21 @@ def _update_shadow_document(location, update):
       update_string += '}}'
        
       try:
-        #asynch call; IoT provides results by calling _my_shadow_update_callback()
-        a_device_shadow.shadowUpdate(update_string, _my_shadow_update_callback, 5)
+        #asynch call; IoT service will provide results by calling
+        #the _my_shadow_update_callback() and pass in results
+        a_device_shadow.shadowUpdate(update_string, 
+                                     _my_shadow_update_callback, 5)
       except Exception as e:
-        _log_message('35', ERROR, 'Exception thrown updating shadow: ' + 
+        sl.log_message('35', ERROR, 'Exception thrown updating shadow: ' + 
                      location + '. ', e)
     else:
       result = False
-      _log_message('16', ERROR, 'Could not obtain a device shadow client ' +
-                   'for location: ' + location, '')
+      sl.log_message('16', ERROR, 'Could not obtain a device shadow client ' +
+                     'for location: ' + location, '')
   else:
     result = False
-    _log_message('17', ERROR, 'Security credentials havent yet been ' +
-                 'provisioned for location: ' + location, '')
+    sl.log_message('17', ERROR, 'Security credentials havent yet been ' +
+                   'provisioned for location: ' + location, '')
   return(result)
    
    
@@ -498,8 +431,8 @@ def _my_shadow_update_callback(payload, response_status, token):
                       payload
   """
   if(response_status != 'accepted'): 
-    _log_message('18', ERROR, 'The IoT Core service returned a value on ' +
-                 'a shadow document update indicating failure.', '')  
+    sl.log_message('18', ERROR, 'The IoT Core service returned a value on ' +
+                   'a shadow document update indicating failure.', '')  
 
 
 def _process_sensor_record(record):
@@ -545,11 +478,11 @@ def _process_sensor_record(record):
       
       result = _update_shadow_document(location, update)
     else:
-      _log_message('19', ERROR, 'New raw sensor data record received with '
-                   + 'invalid station location of: ' + location, '')    
+      sl.log_message('19', ERROR, 'New raw sensor data record received with ' +
+                     'invalid station location of: ' + location, '')    
   except Exception as e:
-    _log_message('31', ERROR, 'Exception thrown updating shadow for: ' 
-                 + location + '. ', e)  
+    sl.log_message('31', ERROR, 'Exception thrown updating shadow for: ' + 
+                   location + '. ', e)  
   return(result)
 
 
@@ -628,31 +561,33 @@ def _process_sensor_data(sensor_data, last_id_processed, last_ts_processed):
               processed_ids.append(record_id)                         
       except Exception as e:
         result = False
-        _log_message('33', ERROR, '', e)
+        sl.log_message('33', ERROR, '', e)
     if(processed_ids):
       processed_ids.sort()
-      _log_message('21', INFO, 'Ingested ' + str(len(processed_ids)) + 
-                   ' sensor data records with IDs ranging from ' + 
-                   str(processed_ids[0]) + ' to ' + str(processed_ids[-1]), '')
-      
+      sl.log_message('21', 'INFO', 'Ingested ' + str(len(processed_ids)) + 
+                     ' sensor data records with IDs ranging from ' + 
+                     str(processed_ids[0]) + ' to ' + str(processed_ids[-1]), 
+                     '')
+      #entry_id is an attributed introduced by www.thingspeak.com
       #was the entry_id of the first sensor record the value expected?
       if((last_id_processed + 1) != processed_ids[0]):
-        _log_message('34', WARN, 'An entry_id gap found between processed ' +
-                     'id: ' + str(last_id_processed) + ' and processed id: ' + 
-                     str(processed_ids[0]) + ' during sensor record ' +
-                     'processing.', '')
+        sl.log_message('34', 'WARN', 'An entry_id gap found between ' +
+                       'processed id: ' + str(last_id_processed) + 
+                       ' and processed id: ' + str(processed_ids[0]) + 
+                       ' during sensor record processing.', '')
                      
       #any entry_id gaps within this set of sensor records processed?
       id_gaps = sorted(set(range(processed_ids[0], 
                            processed_ids[-1])) - set(processed_ids))
       if(id_gaps):
-        _log_message('22', WARN, 'The following entry_id(s) found missing ' +
-                     + 'during sensor record processing: ' + str(id_gaps), '')
+        sl.log_message('22', 'WARN', 'The following entry_id(s) found ' +
+                       'missing during sensor record processing: ' + 
+                       str(id_gaps), '')
       _set_id_ts_of_last_record_processed(str(processed_ids[-1]), 
                                           str(ts_just_processed))
   except Exception as e:
     result = False
-    _log_message('23', ERROR, '', e)          
+    sl.log_message('23', ERROR, '', e)          
   return(result) 
   
   
@@ -676,15 +611,31 @@ def _extract_data_from_API():
       raw_sensor_data_bytes = response.read()
   except Exception as e:
     raw_sensor_data_str = ''
-    _log_message('24', ERROR, '', e)  
+    sl.log_message('24', ERROR, '', e)  
   else:
     try:
       raw_sensor_data_str = raw_sensor_data_bytes.decode()
     except:
       raw_sensor_data_str = ''
-      _log_message('32', ERROR, '', e) 
+      sl.log_message('32', ERROR, '', e) 
  
   return(raw_sensor_data_str)
+
+
+def _send_alert(message):
+  """
+  Send an alert message to the SNS topic
+  """
+  if((type(message == str)) and (message != '')):
+    params = [{'channel' : 'sns',
+               'message' : message,
+               'topic_arns':[SNS_TOPIC_ARN]}]
+    alert = send_alerts.send_alerts(params)
+    if(alert.issues):
+      for issue in alert.issues:
+        sl.log_message('28+', 'ERROR', issue, '') 
+  else:
+    sl.log_message('29', 'WARN', 'Avoided sending empty message to SNS.','')
 
 
 def pull_data(event, context):
@@ -694,17 +645,10 @@ def pull_data(event, context):
   the pull_data process).  Obtain all newly arrived sensor data 
   from the Internet API endpoint and process them skipping any 
   sensor records that have already been processed.
-
-  Args (supplied by AWS Lambda service)
-    event: information about who/what invoked the Lambda function
-    context: information about the Lambda function's runtime env
   """
-  #need to clear global vars to avoid values from previous invocations
-  #being cached by Lambda across different different invocations of function
-  global error_messages
-  error_messages  = {}
-  global info_messages
-  info_messages  = {}
+  #Becuase AWS Lambda service leaves containers around for a short while,
+  #need to clear any potential residual values from global vars
+  sl.reset()
   global device_shadows
   device_shadows = {}
   
@@ -718,31 +662,13 @@ def pull_data(event, context):
                            int(last_ts_processed))
     #else:  logging to capture this error is in _extract_data_from_API()
   else:
-    _log_message('25', ERROR, 'Couldnt retrieve last_id_processed or ' +
+    sl.log_message('25', ERROR, 'Couldnt retrieve last_id_processed or ' +
                               'last_ts_processed from DynamoDB table.', '')
     
-  if(error_messages):
-    _log_message('26', WARN, 
-      'Pull Data process and/or _recent_activity_check() function did not ' +
+  if(sl.error_messages):
+    sl.log_message('26', 'WARN', 
+      'pull_data() job and/or _recent_activity_check() function did not ' +
       'complete without ERROR or raising ALARM.', '')
   else:
-    _log_message('27', INFO, 'Pull Data process completed sucessfully.', '') 
-  
-  _write_logs_to_databases() 
-    
-    
-def _send_alert(message):
-  """
-  Post the text contained in the parameter 'message' to the SNS topic 
-  """
-  if(message):
-    try:
-      sns_access = boto3.client('sns')
-      resp = sns_access.publish(TargetArn = SNS_TOPIC_ARN,
-                                Message = message)
-      if(resp['ResponseMetadata']['HTTPStatusCode'] != 200):
-        _log_message('28', ERROR, 'Issue posting message to SNS', '')   
-    except Exception as e:
-      _log_message('29', ERROR, '', e)   
-  else:
-    _log_message('30', WARN, 'Avoided sending empty message to SNS topic.', '')
+    sl.log_message('27', 'INFO', 'pull_data() job completed sucessfully.', '') 
+  sl.save_messages_to_db()
