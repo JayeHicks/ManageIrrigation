@@ -41,7 +41,12 @@ I took the picture below to document an assembled "at the vine" sensor station t
 
 To help manage condensation within the box multiple silica gel packs are sandwiched between the white PVC board (i.e., the surface with writing on it) and the back of the box.  The hole in the bottom of the box, used to route cables through, is caulked with silicon adhesive.  And finally, before physical deployment into the vineyard, a vineyard operator blasts nitrogen into the box.
 
+
 ![Image1](doco-images/vineyard-station2.jpg)
+
+A vineyard operator took the picture below of an operational sensor station deployed in the vineyard.  If you look to the bottom left of the photo you will see three white pvc pipes emerging from the ground.  Each of these pipes contains a soil moisture sensor located at a different depth.
+
+![Image1](doco-images/box_on_pole.jpg)
 
 ## Design Considerations and Principles
 * Battery power conservation is paramount
