@@ -73,7 +73,7 @@ The architectural blending of the PI 4 and AWS platforms can be illustrated with
 ![Image1](doco-images/comms_example.jpg)
 
 ### Durable Data
-Unlike the data structures of a processing executing on an operating system, the operating system's flat files generally survive, intact, unexpected operating system shutdowns.
+Unlike the data structures of a process executing on an operating system, the operating system's flat files generally survive, intact, unexpected operating system shutdowns.
 
 During Irrigation Control processing on the PI 4, all important data (that cannot be easily recreated) is checkpointed to flat files.  Rather than a process simply creating a data structure and working with it, the processes takes the additional step of saving the state of the data structure to purpose-built flat file.  File writes are immediately followed a call to flush I/O buffers.  Considering the processing power of the PI 4 relative to the amount of I/O overhead introduced by this design, no performance issues are introduced.  That is, the frequency of I/O calls, the average data size of the I/O calls, and the overall complexity of the Irrigation Control scripts have a no noticeable impact on the PI 4's resources.
 
