@@ -200,11 +200,14 @@ The PI 4 localized system logging system is virtually identical to the AWS-based
 The PI 4 localized system logging solution does not introduce a data fragmentation issue for the overall solution.  The system logging messages only pertain to the operational details of processing that occurs on the PI 4 platform.  Any errors or serious issues encountered by processing on the PI 4 platform will be reported to the AWS backend (i.e., invoking an AWS API Gateway endpoint).  
 
 ## Algorithms
+The  complete set of Python 3+ scripts that support the solution's Irrigation Control subsystem will be loaded in the source-code [subdirectory](https://github.com/JayeHicks/ManageIrrigation/tree/master/irrigation/source-code) after final user acceptance testing concludes.  At the time of this writing final use acceptance testing is underway.
+
 The following diagram provides a more detailed logical application architecture depiction than the previous diagram presented in the section above.  Remember that a single script is regularly executed on the PI 4 to provide automated vineyard irrigation.  Despite implementation realities, it is useful to depict two separate scripts in the diagram below.  While developing the script I discovered that the single script approach was architecturally cleaner, more reliable, and more portable across platforms (i.e., OS).
 
 ![Image1](doco-images/pi-log-app-arch-small.jpg)
 
 The following Python 3+ modules are used by the PI 4 script.
+
 **alarms.py** - transmits all alarm data to AWS backend
 
 **check_date_time.py** - obtains current date / time from trusted external endpoint (i.e., public Internet endpoint) and checks it against what the PI 4 believes to be the current date / time.  Returns true / false depending on the variance between the two
@@ -242,4 +245,4 @@ The following Python 3+ modules are used by the PI 4 script.
 * Linux
   * I found it easier to develop on my laptop using Windows Subsystem for Linux (WSL) versus on the PI 4.  I did not do so by installing Linux on my machine to enable dual booting it into Linux or Windows.  The WSL is not a full-blown OS install.  Instead, it is a lightweight compatibility layer that enables you to run Linux binary executables (in ELF format) natively on Windows 10.
   * Spawning process 'B' from process 'A' and then divorcing the two processess such that process 'A' can exit without waiting for process 'B' to terminate is possible.  However, this is a twitchy thing and the solution will be both non trivial, to all but the Linux gurus, and potentially OS-specific
-* To SSH into a device sitting behind an ISP router requires some form of reverse proxy.  Most devices that sit behind an ISP provider's router will present the ISP router's IP address when the communication with the world at large.  The ISP router maintains an internal NAT table that enables it to route inbound messages to the correct device that sits behind it.  To enable SSH sessions into the lonesome vineyard's collection of PI 4 devices, I evaluated multiple options and decided to utilize a reverse proxy service from Shell Hub (www.shellhub.io).  This has worked out very well so far.
+* In order to SSH into a device sitting behind an ISP router requires some form of reverse proxy.  Most devices that sit behind an ISP provider's router will present the ISP router's IP address when the communication with the world at large.  The ISP router maintains an internal NAT table that enables it to route inbound messages to the correct device that sits behind it.  To enable SSH sessions into the lonesome vineyard's collection of PI 4 devices, I evaluated multiple options and decided to utilize a reverse proxy service from Shell Hub (www.shellhub.io).  This has worked out very well so far.
