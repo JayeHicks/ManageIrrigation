@@ -11,7 +11,7 @@ The photo below is a marketing photo of the 8-Channel Relay selected for use in 
 
 The photo below is a marketing photo of the flow meter used in this solution.  It is plumbed in-line from the irrigation well main water inlet before the fanout to the 7 irrigation blocks.  It is wired to GPIO pins on the PI 4.
 
-![Image1](doco-images/flow_meter.jpg)
+![Image1](doco-images/hunter-small.jpg)
 
 Python 3+ was selected as the programming / scripting language that supports intelligent, automated  irrigation.  Every attempt was made to write efficient, self-contained scripts.  Modules were imported when warranted but they were all sourced from either the Python 3+ Standard Library or from the set of modules that commonly accompany a standard Python 3+ install.
 
