@@ -200,7 +200,7 @@ The PI 4 localized system logging system is virtually identical to the AWS-based
 The PI 4 localized system logging solution does not introduce a data fragmentation issue for the overall solution.  The system logging messages only pertain to the operational details of processing that occurs on the PI 4 platform.  Any errors or serious issues encountered by processing on the PI 4 platform will be reported to the AWS backend (i.e., invoking an AWS API Gateway endpoint).  
 
 ## Algorithms
-The  complete set of Python 3+ scripts that support the solution's Irrigation Control subsystem will be loaded in the source-code [subdirectory](https://github.com/JayeHicks/ManageIrrigation/tree/master/irrigation/source-code) after final user acceptance testing concludes.  At the time of this writing final use acceptance testing is underway.
+The  final versions of the complete set of Python 3+ scripts that support the solution's Irrigation Control subsystem will be loaded in the source-code [subdirectory](https://github.com/JayeHicks/ManageIrrigation/tree/master/irrigation/source-code) after final user acceptance testing concludes.  The set of files currently in the source-code directory represent a 99% installment towards the final goal.
 
 The following diagram provides a more detailed logical application architecture depiction than the previous diagram presented in the section above.  Remember that a single script is regularly executed on the PI 4 to provide automated vineyard irrigation.  Despite implementation realities, it is useful to depict two separate scripts in the diagram below.  While developing the script I discovered that the single script approach was architecturally cleaner, more reliable, and more portable across platforms (i.e., OS).
 
