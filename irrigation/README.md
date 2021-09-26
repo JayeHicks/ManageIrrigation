@@ -234,10 +234,9 @@ The following Python 3+ modules are used by the PI 4 script.
 * Ensure that the channel relay you select completely isolates low voltage DC, coming from the PI 4, from high voltage used to actuate the irrigation valves.  This separation is often referred to as �optocoupler isolation.  Without the separation, high voltage current can damage the PI 4 board.
 * Python
    * System logging
-      * There is a wide variety of Python modules readably available that one can use for system logging, however, I elected to craft my own minimalistic, streamlined logging solution that would contain no extraneous functionality
-     * My custom logging solution requires, per source code file, two global variables and two short functions.
-     * Logs are collected in two files: one for informational / warning messages and one for issues / alarms.
-     * The Oversight script curates the size of these files to maintain optimal file IO performance.
+      * The system logging functionality provided by the Python standard library is definitely the way to go.  Use it if at all possible
+      * I choose to generate a new log file for each separate script execution  
+      * It is useful to encode the start date / time in the name of each sytem log file.  This creates human-readable file names with encoed information that can be easily extracted for use in the data lifecycle management of system logs files.
    * The solution uses a simple, light-weight, efficient data integrity mechanism to validate local data files as well as data transmissions between the PI 4 platform and the AWS platform.
       * If you choose to use a similar mechanism, use the hashlib.py module to generate hash values on data sets.  Do NOT use Python's built-in hash() function as different installations of Python will generate a different hash value despite being passed the exact same string.  Interestingly enough, this is by design and does not represent an error.
       * By storing the hash value of a data set alongside the data set, the hash function can be run again in the future to verify its data integrity on either the PI 4 platform or the AWS platform
